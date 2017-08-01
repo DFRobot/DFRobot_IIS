@@ -5,19 +5,19 @@ The library is used to play music and recording
 
 ### Enter the audio mode 
   
-   void init(int Audioplay);
+    void init(int Audioplay);
    
 ### Enter the WAV file name in the SD card you want to play in this format ("/sdcard/filename.wav")
    
-   int playMusic(const char *filename);
+    int playMusic(const char *filename);
 
 ### Enter the WAV file name you want to store in the SD card in this format ("/sdcard/filename.wav")
   
-   int recordSound(const char *outputFilename);
+    int recordSound(const char *outputFilename);
 
 ### Enter the camera mode and take photo
  
-   void init(int Camera);
+    void init(int Camera);
  
  * @file playmusic.ino and record.ino
  * @brief DFRobot's IIS Module
