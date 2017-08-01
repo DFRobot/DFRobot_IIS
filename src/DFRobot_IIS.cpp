@@ -1,12 +1,12 @@
 /*!
  * @file DFRobot_IIS.h
  * @brief DFRobot's IIS Module
- * @n IIS Module for playMusic and recordSound
+ * @n IIS Module for playMusic、recordSound and takephoto
  *
  * @copyright	[DFRobot](http://www.dfrobot.com), 2017
  * @copyright	GNU Lesser General Public License
  *
- * @author [Zhangjiawei](jiawei.zhang@dfrobot.com)
+ * @author [Zhangjiawei]
  * @version  V1.0
  * @date  2017-8-1
  */
@@ -21,6 +21,7 @@
 #include "sdmmc_cmd.h"
 #include "esp_err.h"
 #include "esp_log.h"
+#include "camera.h"
 
 void DFRobot_IIS::init(int mode)
 {
@@ -29,7 +30,7 @@ void DFRobot_IIS::init(int mode)
 	I2C_Master_Init();
 	}
 	else if(mode==1){
-    SDcard_init();
+    takephoto();
 	}
 	else 
     printf("No such mode ");
@@ -218,7 +219,7 @@ void I2C_WriteWAU8822(int8_t addr, int16_t data)
 void I2C_Setup_WAU8822_play()
 {
     I2C_WriteWAU8822(0,  0x000);   
-    vTaskdelay(10);
+    //vTaskdelay(10);
     I2C_WriteWAU8822(1,  0x1FF);  
     I2C_WriteWAU8822(2,  0x1BF);   
     I2C_WriteWAU8822(3,  0x1FF);   
@@ -245,7 +246,7 @@ void I2C_Setup_WAU8822_play()
 void I2C_Setup_WAU8822_record()
 {
     I2C_WriteWAU8822(0,  0x000);   
-    vTaskdelay(10);
+    //vTaskdelay(10);
     I2C_WriteWAU8822(1,  0x1FF);  
     I2C_WriteWAU8822(2,  0x1BF);   
     I2C_WriteWAU8822(3,  0x1FF);  

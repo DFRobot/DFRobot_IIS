@@ -6,7 +6,7 @@
  * @copyright	[DFRobot](http://www.dfrobot.com), 2017
  * @copyright	GNU Lesser General Public License
  *
- * @author [Zhangjiawei](jiawei.zhang@dfrobot.com)
+ * @author [Zhangjiawei]
  * @version  V1.0
  * @date  2017-8-1
  */
