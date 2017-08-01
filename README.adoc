@@ -1,0 +1,26 @@
+DFRobot_IIS Library for Arduino
+---------------------------------------------------------
+
+The library is used to play music and recording
+###Use this function to pass in the Audioplay parameter to initialize the audio mode
+   void init(int mode);
+###Enter the WAV file name in the SD card you want to play in this format ("/sdcard/filename.wav")
+   int playMusic(const char *filename);
+###Enter the WAV file name you want to store in the SD card in this format ("/sdcard/filename.wav")
+   int recordSound(const char *outputFilename);
+
+ * @file playmusic.ino and record.ino
+ * @brief DFRobot's IIS Module
+ * @n These two examples are used to play music and recording
+ *
+ * @n [Get the module here](等上架后添加商品购买链接)
+ * @n This example Set the volume size and play music snippet.
+ * @n [Connection and Diagram](等上架后添加wiki链接)
+ *
+ * @copyright	[DFRobot](http://www.dfrobot.com), 2017
+ * @copyright	GNU Lesser General Public License
+ *
+ * @author [Zhangjiawei]
+ * @version  V1.0
+ * @date  2017-8-1
+ * @https://github.com/DFRobot/DFRobot_IIS
