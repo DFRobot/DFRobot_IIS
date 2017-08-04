@@ -3,7 +3,7 @@ DFRobot_IIS Library for Arduino
 
 The library is used to play music and recording
 
-### Enter the audio mode ###
+### Enter the audio mode 
   
     void init(int Audioplay);
    
