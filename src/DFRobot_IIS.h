@@ -1,7 +1,7 @@
 /*!
  * @file DFRobot_IIS.h
  * @brief DFRobot's IIS Module
- * @n IIS Module for playMusic and recordSound
+ * @n IIS Module for playMusic、recordSound and takephoto
  *
  * @copyright	[DFRobot](http://www.dfrobot.com), 2017
  * @copyright	GNU Lesser General Public License
@@ -40,16 +40,15 @@ extern "C" {
 #include "sdmmc_cmd.h"
 }
 
-
-#define I2S_MCLK 27
+#define I2S_MCLK 22
 #define WRITE_BIT  I2C_MASTER_WRITE
 #define READ_BIT   I2C_MASTER_READ
 #define ESP_SLAVE_ADDR   (0X34) 
 #define ACK_CHECK_EN   0x1     
 #define ACK_CHECK_DIS  0x0     
 #define I2C_MASTER_NUM  I2C_NUM_1
-#define I2C_MASTER_SCL_IO   GPIO_NUM_22
-#define I2C_MASTER_SDA_IO   GPIO_NUM_21
+#define I2C_MASTER_SCL_IO   GPIO_NUM_27
+#define I2C_MASTER_SDA_IO   GPIO_NUM_26
 #define I2C_MASTER_TX_BUF_DISABLE   0  
 #define I2C_MASTER_RX_BUF_DISABLE   0  
 #define I2C_MASTER_FREQ_HZ     600

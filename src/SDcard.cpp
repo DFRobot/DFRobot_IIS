@@ -4,7 +4,7 @@
 
 
 
-void SDcard_init()
+bool SDcard_init()
 {
     
     sdmmc_card_t* card;
@@ -15,6 +15,15 @@ void SDcard_init()
         .format_if_mount_failed = false,
         .max_files = 5
     };
-    esp_vfs_fat_sdmmc_mount("/sdcard", &host, &slot_config, &mount_config, &card);
+     esp_err_t ret = esp_vfs_fat_sdmmc_mount("/sdcard", &host, &slot_config, &mount_config, &card);
+    if (ret != ESP_OK) {
+        if (ret == ESP_FAIL) {
+            printf("Failed to mount filesystem. If you want the card to be formatted, set format_if_mount_failed = true.");
+        } else {
+            printf("Failed to initialize the card , Please insert SD card and reset.");
+        }
+        return false;
+	}
+	return true;
 }
 

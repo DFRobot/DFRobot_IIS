@@ -1,11 +1,3 @@
-/*
- * This file is part of the OpenMV project.
- * Copyright (c) 2013/2014 Ibrahim Abdelkader <i.abdalkader@gmail.com>
- * This work is licensed under the MIT license, see the file LICENSE for details.
- *
- * OV7725 driver.
- *
- */
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -107,11 +99,11 @@ static const uint8_t default_regs[][2] = {
 
     // Lens Correction, should be tuned with real camera module
     {LC_RADI,       0x10},
-    {LC_COEF,       0x10},
-    {LC_COEFB,      0x14},
-    {LC_COEFR,      0x17},
+    {LC_COEF,       0x00},
+    {LC_COEFB,      0x00},
+    {LC_COEFR,      0x00},
     {LC_CTR,        0x05},
-    {COM5,          0xF5}, //0x65
+    {COM5,          0x65}, //0xF5
 
     {0x00,          0x00},
 };
@@ -290,13 +282,14 @@ int ov7725_init(sensor_t *sensor)
     // Set function pointers
     sensor->reset = reset;
     sensor->set_pixformat = set_pixformat;
-    int reg=SCCB_Read(sensor->slv_addr, COM7);
-    ESP_LOGE(TAG,"pixformat set=%d",reg);
+    
+    //ESP_LOGE(TAG,"pixformat set=%d",reg);
     sensor->set_framesize = set_framesize;
     sensor->set_colorbar = set_colorbar;
     sensor->set_whitebal = set_whitebal;
     sensor->set_gain_ctrl = set_gain_ctrl;
     sensor->set_exposure_ctrl = set_exposure_ctrl;
+	
     sensor->set_hmirror = set_hmirror;
     sensor->set_vflip = set_vflip;
 
@@ -305,13 +298,11 @@ int ov7725_init(sensor_t *sensor)
     sensor->id.MIDL = SCCB_Read(sensor->slv_addr, REG_MIDL);
     sensor->id.PID = SCCB_Read(sensor->slv_addr, REG_PID);
     sensor->id.VER = SCCB_Read(sensor->slv_addr, REG_VER);
-
-    // Set sensor flags
+	
     SENSOR_HW_FLAGS_SET(sensor, SENSOR_HW_FLAGS_VSYNC, 1);
     SENSOR_HW_FLAGS_SET(sensor, SENSOR_HW_FLAGS_HSYNC, 0);
     SENSOR_HW_FLAGS_SET(sensor, SENSOR_HW_FLAGS_PIXCK, 1);
     SENSOR_HW_FLAGS_SET(sensor, SENSOR_HW_FLAGS_FSYNC, 1);
     SENSOR_HW_FLAGS_SET(sensor, SENSOR_HW_FLAGS_JPEGE, 0);
-
     return 0;
 }

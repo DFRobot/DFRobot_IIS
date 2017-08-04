@@ -26,7 +26,15 @@
 void DFRobot_IIS::init(int mode)
 {
 	if(mode==0){
-    SDcard_init();
+	int ret=SDcard_init();
+	if(ret==0)
+    {
+	  printf("SDcard ERROR! \n");
+	  while(1)
+	  {
+		 vTaskDelay(1000/portTICK_PERIOD_MS); 
+	  }
+    }
 	I2C_Master_Init();
 	}
 	else if(mode==1){
@@ -95,8 +103,6 @@ int DFRobot_IIS::playMusic(const char *filename)
 		    }
         }
 	}
-	printf("wav->header.sampleRate=%d \n",wav->header.sampleRate);
-	printf("wav->header.bitsPerSample=%d \n",wav->header.bitsPerSample);
 	I2S_MCLK_Init(wav->header.sampleRate);
     I2S_Master_Init(wav->header.sampleRate ,wav->header.bitsPerSample);
     i2s_set_sample_rates(I2S_NUM_0, wav->header.sampleRate);
@@ -171,10 +177,11 @@ int DFRobot_IIS::recordSound(const char *outputFilename, uint32_t samplerate, i2
   char *buf=(char *)&wav->header.test;
   I2S_MCLK_Init(samplerate);
   I2S_Slave_Init(samplerate,bitspersample);
+  printf("recording  \n");
   while((gpio_input_get()&0x00010000)) {
     bytes_written = i2s_read_bytes(I2S_NUM_0 ,buf, 800 , 100);
 	wav->header.dataSize+=fwrite(buf, 1, bytes_written , wav->fp);
-	printf("bytes_written=%d \n",bytes_written);
+	//printf("bytes_written=%d \n",bytes_written);
   }  
   printf("record done \n");
   wav->header.riffSize =wav->header.dataSize+44;
@@ -356,7 +363,7 @@ bool SDcard_init(const char * mountpoint)
             log_w("SD Already mounted");
             return true;
         } else {
-            log_e("Failed to initialize the card (%d). Make sure SD card lines have pull-up resistors in place.", ret);
+            log_e("Failed to initialize the card , Please insert SD card and reset.");
         }
         _card = NULL;
         return false;

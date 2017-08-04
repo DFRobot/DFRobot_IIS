@@ -8,15 +8,15 @@ The library is used to play music and recording
     void init(int Audioplay);
    
 ### Enter the WAV file name in the SD card you want to play in this format ("/sdcard/filename.wav")
-   
+    
     int playMusic(const char *filename);
 
 ### Enter the WAV file name you want to store in the SD card in this format ("/sdcard/filename.wav")
-  
+
     int recordSound(const char *outputFilename);
 
 ### Enter the camera mode and take photo
- 
+
     void init(int Camera);
  
  * @file playmusic.ino and record.ino
@@ -30,7 +30,7 @@ The library is used to play music and recording
  * @copyright	[DFRobot](http://www.dfrobot.com), 2017
  * @copyright	GNU Lesser General Public License
  *
- * @author [Zhangjiawei]
+ * @author [Zhangjiawei<jiawei.zhang@dfrobot.com>]
  * @version  V1.0
  * @date  2017-8-1
  * @https://github.com/DFRobot/DFRobot_IIS

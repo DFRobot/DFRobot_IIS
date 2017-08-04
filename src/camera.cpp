@@ -22,7 +22,6 @@ extern "C" {
 #include "esp_log.h"
 #include "sensor.h"
 #include "sccb.h"
-
 #include "camera.h"
 #include "camera_common.h"
 #include "xclk.h"
@@ -35,9 +34,6 @@ extern "C" {
 #if CONFIG_OV7725_SUPPORT
 #include "ov7725.h"
 #endif
-
-
-
 
 #define ENABLE_TEST_PATTERN CONFIG_ENABLE_TEST_PATTERN
 #define CAMERA_PIXEL_FORMAT CAMERA_PF_RGB565
@@ -171,7 +167,7 @@ esp_err_t camera_probe(const camera_config_t* config, camera_model_t* out_camera
 
     ESP_LOGE(TAG, "Doing SW reset of sensor");
     s_state->sensor.reset(&s_state->sensor);
-
+   
     return ESP_OK;
 }
 
@@ -417,7 +413,15 @@ esp_err_t camera_run()
 static void get_bmp()
 {
    ESP_LOGI(TAG, "init SDcard");
-   SDcard_init();
+   int ret=SDcard_init();
+   if(ret==0)
+   {
+	  ESP_LOGI(TAG, "SDcard ERROR!");
+	  while(1)
+	  {
+		 vTaskDelay(1000/portTICK_PERIOD_MS); 
+	  }
+   }
    ESP_LOGD(TAG, "init SDcard");
    HANDLE_BMP bmp= (HANDLE_BMP)calloc(1,sizeof(struct BMP));
    ESP_LOGD(TAG, "calloc bmp");
@@ -437,7 +441,7 @@ static void get_bmp()
    bmp->header.BiWidth=160;
    bmp->header.BiHighth=120;
    bmp->header.BiPlanes=1;
-   bmp->header.BitCount=24;
+   bmp->header.BitCount=16;
    ESP_LOGD(TAG, "set data");
    bmp->header.BiCompression=0;
    bmp->header.BiSizeTmage=0;
@@ -456,13 +460,13 @@ static void get_bmp()
          g=s_state->fb[j+1];
          r=s_state->fb[j+2];
          gry=(b+g+r)/3;
-     if(j<120)
+     if(j<0)
      {
 ESP_LOGI(TAG,"b=0x%2x , g=0x%2x , r=0x%2x",b,g,r);
      }
-     fwrite(&gry , 1, 1, bmp->fp);
-     fwrite(&gry , 1, 1, bmp->fp);
-     fwrite(&gry , 1, 1, bmp->fp);
+     fwrite(&b , 1, 1, bmp->fp);
+     fwrite(&g , 1, 1, bmp->fp);
+    // fwrite(&gry , 1, 1, bmp->fp);
      bmp->header.BfSize+=2;
      bmp->header.BiSizeTmage+=2;
    }
@@ -826,19 +830,19 @@ static void IRAM_ATTR dma_filter_jpeg(const dma_elem_t* src, lldesc_t* dma_desc,
 
 static inline void rgb565_to_888(uint8_t in1, uint8_t in2, uint8_t* dst)
 {
-    dst[0] = ((in2 & 0b00011111) << 3); // blue
+ /*   dst[0] = ((in2 & 0b00011111) << 3); // blue
  //   ESP_LOGI(TAG, "blue=0x%2x",dst[0]);
     dst[1] = ((in1 & 0b00000111) << 5) | ((in2 & 0b11100000 >> 3)); // green
  //   ESP_LOGI(TAG, "green=0x%2x",dst[1]);
     dst[2] = (in1 & 0b11111000);//|((in1 & 0b00111000)>>3); // red
   //  ESP_LOGI(TAG, "red=0x%2x",dst[2]);
     //delay(10);
-
-  /*    
-    dst[0]=in1>>1;   
-    dst[1]=((in2&0x1f)|(in1&0x01)<<8|(in2&0xC0)>>1); 
+*/
+      
+    dst[0]=((in2&0x1f)|(in1&0x01)<<7|(in2&0xC0)>>1);
+	dst[1]=in1>>1;   
     dst[2]=0;
- */
+ 
 }
 
 static void IRAM_ATTR dma_filter_rgb565(const dma_elem_t* src, lldesc_t* dma_desc, uint8_t* dst)
@@ -865,51 +869,58 @@ static void IRAM_ATTR dma_filter_rgb565(const dma_elem_t* src, lldesc_t* dma_des
 
 void takephoto()
 {
-    camera_config_t camrea_config;
-	    camrea_config.pin_d0 = 17;
-        camrea_config.pin_d1 = 5;
-        camrea_config.pin_d2 = 18;
-        camrea_config.pin_d3 = 19;
-        camrea_config.pin_d4 = 36;
-        camrea_config.pin_d5 = 39;
-        camrea_config.pin_d6 = 34;
-        camrea_config.pin_d7 = 35;
-        camrea_config.pin_xclk = 21;
-        camrea_config.pin_pclk = 22;
-        camrea_config.pin_vsync = 25;
-        camrea_config.pin_href = 23;
-        camrea_config.pin_sscb_sda = 26;
-        camrea_config.pin_sscb_scl = 27;
-        camrea_config.pin_reset = 0;
-        camrea_config .xclk_freq_hz = 20000000;//5000000;
-		camrea_config.ledc_timer = LEDC_TIMER_0;
-		camrea_config.ledc_channel = LEDC_CHANNEL_0;
+    camera_config_t camera_config;
+	    camera_config.pin_d0 = 17;
+        camera_config.pin_d1 = 5;
+        camera_config.pin_d2 = 18;
+        camera_config.pin_d3 = 19;
+        camera_config.pin_d4 = 36;
+        camera_config.pin_d5 = 39;
+        camera_config.pin_d6 = 34;
+        camera_config.pin_d7 = 35;
+        camera_config.pin_xclk = 21;
+        camera_config.pin_pclk = 22;
+        camera_config.pin_vsync = 25;
+        camera_config.pin_href = 23;
+        camera_config.pin_sscb_sda = 26;
+        camera_config.pin_sscb_scl = 27;
+        camera_config.pin_reset = 0;
+        camera_config .xclk_freq_hz = 20000000;//5000000;
+		camera_config.ledc_timer = LEDC_TIMER_0;
+		camera_config.ledc_channel = LEDC_CHANNEL_0;
         camera_model_t camera_model;
-      esp_err_t err = camera_probe(&camrea_config, &camera_model);
+      esp_err_t err = camera_probe(&camera_config, &camera_model);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Camera probe failed with error 0x%x", err);
         return;
     }
     if (camera_model == CAMERA_OV7725) {
-        ESP_LOGI(TAG, "Detected OV7725 camera, using rgb565 bitmap format");
+        ESP_LOGE(TAG, "Detected OV7725 camera, using rgb565 bitmap format");
         s_pixel_format = CAMERA_PF_RGB565;
-        camrea_config.frame_size = CAMERA_FRAME_SIZE;
+        camera_config.frame_size = CAMERA_FRAME_SIZE;
     } else if (camera_model == CAMERA_OV2640) {
-        ESP_LOGI(TAG, "Detected OV2640 camera, using JPEG format");
+        ESP_LOGE(TAG, "Detected OV2640 camera, using JPEG format");
         s_pixel_format = CAMERA_PF_JPEG;
-        camrea_config.frame_size = CAMERA_FS_VGA;
-        camrea_config.jpeg_quality = 15;
+        camera_config.frame_size = CAMERA_FS_VGA;
+        camera_config.jpeg_quality = 15;
     } else {
         ESP_LOGE(TAG, "Camera not supported");
         return;
     }
-    camrea_config.pixel_format = s_pixel_format;
-    err = camera_init(&camrea_config);
+    camera_config.pixel_format = s_pixel_format;
+	ESP_LOGE(TAG, "Camera init ");
+    err = camera_init(&camera_config);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Camera init failed with error 0x%x", err);
         return;
     }
-    
-    camera_run();
+  while(1)
+  {	  
+    while((gpio_input_get()&0x00010000))
+	{
+	  vTaskDelay(10 / portTICK_PERIOD_MS);
+	}
+	camera_run();
     ESP_LOGE(TAG, "DONE");
+  }
 }

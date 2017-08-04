@@ -1,21 +1,11 @@
-/*
- * This file is part of the OpenMV project.
- * Copyright (c) 2013/2014 Ibrahim Abdelkader <i.abdalkader@gmail.com>
- * This work is licensed under the MIT license, see the file LICENSE for details.
- *
- * SCCB (I2C like) driver.
- *
- */
 #include <stdbool.h>
 #include "wiring.h"
 #include "sccb.h"
 #include "twi.h"
 #include <stdio.h>
 
-#define SCCB_FREQ   (100000) // We don't need fast I2C. 100KHz is fine here.
-#define TIMEOUT     (1000) /* Can't be sure when I2C routines return. Interrupts
-while polling hardware may result in unknown wir_delays. */
-
+#define SCCB_FREQ   (60000) // We don't need fast I2C. 100KHz is fine here.
+#define TIMEOUT     (1000) 
 
 int SCCB_Init(int pin_sda, int pin_scl)
 {

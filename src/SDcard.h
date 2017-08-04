@@ -17,10 +17,6 @@ extern "C" {
 #include "sdmmc_cmd.h"
 }
 
-
-
-
-void SDcard_init();
-
+bool SDcard_init();
 
 #endif
