@@ -6,7 +6,7 @@
  * @copyright	[DFRobot](http://www.dfrobot.com), 2017
  * @copyright	GNU Lesser General Public License
  *
- * @author [Zhangjiawei]
+ * @author [Zhangjiawei<jiawei.zhang@dfrobot.com>]
  * @version  V1.0
  * @date  2017-8-1
  */
@@ -42,6 +42,15 @@ void DFRobot_IIS::init(int mode)
 	}
 	else 
     printf("No such mode ");
+}
+
+void DFRobot_IIS::setVolume(int volume)
+{
+	while(volume>100)
+	{
+		volume-=100;
+	}
+	 Volume=(volume*64/100);
 }
 
 int DFRobot_IIS::playMusic(const char *filename)
@@ -82,7 +91,7 @@ int DFRobot_IIS::playMusic(const char *filename)
       printf("playMusic(): fmt chunk format not found.\n") ;
      goto error;
     }
-    fread(&wav->header.formatSize, 4, 1, wav->fp);   
+    fread(&(wav->header.formatSize), 4, 1, wav->fp);   
     fread(&(wav->header.compressionCode), 2, 1, wav->fp);
     fread(&(wav->header.numChannels), 2, 1, wav->fp);
     fread(&(wav->header.sampleRate), 4, 1, wav->fp);
@@ -107,6 +116,8 @@ int DFRobot_IIS::playMusic(const char *filename)
     I2S_Master_Init(wav->header.sampleRate ,wav->header.bitsPerSample);
     i2s_set_sample_rates(I2S_NUM_0, wav->header.sampleRate);
 	printf("set clock");
+	uint8_t  p;
+	p=1;
     while(fread(&wav->header.test, 1 , 800 , wav->fp)){
         char *buf=(char *)&wav->header.test;
         int bytes_left=800,bytes_written = 0;
@@ -114,9 +125,27 @@ int DFRobot_IIS::playMusic(const char *filename)
             bytes_written = i2s_write_bytes(I2S_NUM_0 , buf , bytes_left , 0);
             bytes_left -= bytes_written;
 			buf += bytes_written;
-			printf("bytes_written=%d \n",bytes_written);
-        }   
-    }
+			if(!(gpio_input_get()&0x00010000)){
+				I2C_WriteWAU8822(52, 0x040);   
+                I2C_WriteWAU8822(53, 0x040); 
+			    p =0;
+				printf("stop \n");
+			    vTaskDelay(1000);
+				while(((gpio_input_get()&0x00010000))&&(p==0)){
+			     	printf("stop \n");
+				    while((gpio_input_get()&0x00010000)){
+					
+			        vTaskDelay(100);
+			        }
+				p=1;
+				printf("continue \n");
+				vTaskDelay(1000);
+				I2C_WriteWAU8822(52, Volume);   
+                I2C_WriteWAU8822(53, Volume+256); 
+			    }
+		    } 
+		}
+	}
 	printf("playMusic over");
     i2s_stop(I2S_NUM_0);
 	fclose(wav->fp);
@@ -223,10 +252,10 @@ void I2C_WriteWAU8822(int8_t addr, int16_t data)
     i2c_cmd_link_delete(cmd);
 }
 
-void I2C_Setup_WAU8822_play()
+void DFRobot_IIS::I2C_Setup_WAU8822_play()
 {
     I2C_WriteWAU8822(0,  0x000);   
-    //vTaskdelay(10);
+    vTaskDelay(10);
     I2C_WriteWAU8822(1,  0x1FF);  
     I2C_WriteWAU8822(2,  0x1BF);   
     I2C_WriteWAU8822(3,  0x1FF);   
@@ -243,17 +272,17 @@ void I2C_Setup_WAU8822_play()
     I2C_WriteWAU8822(47, 0x175);   
     I2C_WriteWAU8822(48, 0x175);   
     I2C_WriteWAU8822(50, 0x001);   
-    I2C_WriteWAU8822(51, 0x001);   
-    I2C_WriteWAU8822(52, 0x039);   
-    I2C_WriteWAU8822(53, 0x139);   
-    I2C_WriteWAU8822(54, 0x03f);   
-    I2C_WriteWAU8822(55, 0x13f);   
+    I2C_WriteWAU8822(51, 0x001); 
+	I2C_WriteWAU8822(52, Volume);   
+    I2C_WriteWAU8822(53, Volume+256);   
+    I2C_WriteWAU8822(54, 0x039);//Volume);   
+    I2C_WriteWAU8822(55, 0x139);//Volume+256);   
 }
 
-void I2C_Setup_WAU8822_record()
+void DFRobot_IIS::I2C_Setup_WAU8822_record()
 {
     I2C_WriteWAU8822(0,  0x000);   
-    //vTaskdelay(10);
+    vTaskDelay(10);
     I2C_WriteWAU8822(1,  0x1FF);  
     I2C_WriteWAU8822(2,  0x1BF);   
     I2C_WriteWAU8822(3,  0x1FF);  
@@ -272,10 +301,10 @@ void I2C_Setup_WAU8822_record()
     I2C_WriteWAU8822(48, 0x175);  
     I2C_WriteWAU8822(50, 0x001);  
     I2C_WriteWAU8822(51, 0x001);   
-    I2C_WriteWAU8822(52, 0x039);   
+    I2C_WriteWAU8822(52, 0x139);   
     I2C_WriteWAU8822(53, 0x139);   
-    I2C_WriteWAU8822(54, 0x140);   
-    I2C_WriteWAU8822(55, 0x140);
+    I2C_WriteWAU8822(54, 0x139);   
+    I2C_WriteWAU8822(55, 0x139);
 }
 
 void I2S_MCLK_Init(unsigned int SAMPLE_RATE)
@@ -285,7 +314,7 @@ void I2S_MCLK_Init(unsigned int SAMPLE_RATE)
     int duty                 = pow(2, (int) bit_num) / 2;
     ledc_timer_config_t timer_conf;
     timer_conf.bit_num       = bit_num;
-    timer_conf.freq_hz       =SAMPLE_RATE*256; 
+    timer_conf.freq_hz       = SAMPLE_RATE*256; 
     timer_conf.speed_mode    = LEDC_HIGH_SPEED_MODE;
     timer_conf.timer_num     = LEDC_TIMER_0;
     ledc_timer_config(&timer_conf);

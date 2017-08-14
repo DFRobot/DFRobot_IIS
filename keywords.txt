@@ -13,10 +13,10 @@ DFRobot_IIS	KEYWORD1	DFRobot_IIS
 # Methods and Functions (KEYWORD2)
 #######################################	
 
-init		KEYWORD2
-playMusic	KEYWORD2
-recordSound	KEYWORD2
-
+init         KEYWORD2
+setVolume    KEYWORD2
+playMusic	 KEYWORD2
+recordSound	 KEYWORD2
 
 #######################################
 # Constants (LITERAL1)

@@ -21,6 +21,7 @@ DFRobot_IIS iis;
 
 void setup() {
   Serial.begin(115200);
+  iis.setVolume(50);    // Volume from 0 to 100
   iis.init(Audioplay);
   iis.playMusic("/sdcard/123.WAV");
   delay(500);

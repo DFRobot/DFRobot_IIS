@@ -6,7 +6,7 @@
  * @copyright	[DFRobot](http://www.dfrobot.com), 2017
  * @copyright	GNU Lesser General Public License
  *
- * @author [Zhangjiawei]
+ * @author [Zhangjiawei<jiawei.zhang@dfrobot.com>]
  * @version  V1.0
  * @date  2017-8-1
  */
@@ -40,15 +40,15 @@ extern "C" {
 #include "sdmmc_cmd.h"
 }
 
-#define I2S_MCLK 22
+#define I2S_MCLK 22//27
 #define WRITE_BIT  I2C_MASTER_WRITE
 #define READ_BIT   I2C_MASTER_READ
 #define ESP_SLAVE_ADDR   (0X34) 
 #define ACK_CHECK_EN   0x1     
 #define ACK_CHECK_DIS  0x0     
 #define I2C_MASTER_NUM  I2C_NUM_1
-#define I2C_MASTER_SCL_IO   GPIO_NUM_27
-#define I2C_MASTER_SDA_IO   GPIO_NUM_26
+#define I2C_MASTER_SCL_IO   GPIO_NUM_27//22
+#define I2C_MASTER_SDA_IO   GPIO_NUM_26//21
 #define I2C_MASTER_TX_BUF_DISABLE   0  
 #define I2C_MASTER_RX_BUF_DISABLE   0  
 #define I2C_MASTER_FREQ_HZ     600
@@ -87,8 +87,7 @@ typedef struct WAV *HANDLE_WAV;
   void I2S_Slave_Init (uint32_t SAMPLE_RATE,i2s_bits_per_sample_t BITS_PER_SAMPLE);   
   void I2C_Master_Init();
   void I2C_WriteWAU8822(int8_t addr ,  int16_t data);
-  void I2C_Setup_WAU8822_play();
-  void I2C_Setup_WAU8822_record();
+  
   bool SDcard_init(const char * mountpoint="/sdcard");
   unsigned int LittleEndian32(unsigned int v);
   unsigned short LittleEndian16(short v); 
@@ -97,7 +96,12 @@ class DFRobot_IIS
 {
 public:
   void init(int mode);
+  void setVolume(int volume);
   int  playMusic(const char *filename);
   int  recordSound(const char *outputFilename, uint32_t samplerate=32000, i2s_channel_t numchannels=I2S_CHANNEL_STEREO, i2s_bits_per_sample_t bitspersample=I2S_BITS_PER_SAMPLE_16BIT);
-};
+  void I2C_Setup_WAU8822_play();
+  void I2C_Setup_WAU8822_record();
+private:
+  int Volume=57;
+  };
 #endif
