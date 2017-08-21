@@ -69,7 +69,6 @@ static void i2s_init();
 static void i2s_run();
 static void IRAM_ATTR gpio_isr(void* arg);
 static void IRAM_ATTR i2s_isr(void* arg);
-static esp_err_t dma_desc_init();
 static void dma_desc_deinit();
 static void dma_filter_task(void *pvParameters);
 static void dma_filter_grayscale(const dma_elem_t* src, lldesc_t* dma_desc, uint8_t* dst);
@@ -77,7 +76,8 @@ static void dma_filter_grayscale_highspeed(const dma_elem_t* src, lldesc_t* dma_
 static void dma_filter_jpeg(const dma_elem_t* src, lldesc_t* dma_desc, uint8_t* dst);
 static void dma_filter_rgb565(const dma_elem_t* src, lldesc_t* dma_desc, uint8_t* dst);
 static void i2s_stop();
-static void get_bmp();
+static void get_bmp(const char*pictureFilename);
+static esp_err_t dma_desc_init();
 static bool is_hs_mode()
 {
     return s_state->config.xclk_freq_hz > 10000000;
@@ -104,7 +104,6 @@ esp_err_t camera_probe(const camera_config_t* config, camera_model_t* out_camera
 		ESP_LOGE(TAG, "s_state != NULL");
         return ESP_ERR_INVALID_STATE;
     }
-
     s_state = (camera_state_t*) calloc(sizeof(*s_state), 1);
     if (!s_state) {
         return ESP_ERR_NO_MEM;
@@ -377,7 +376,7 @@ size_t camera_get_data_size()
     return s_state->data_size;
 }
 
-esp_err_t camera_run()
+esp_err_t camera_run(const char *pictureFilename)
 {
     if (s_state == NULL) {
         return ESP_ERR_INVALID_STATE;
@@ -390,7 +389,7 @@ esp_err_t camera_run()
     i2s_run();
     ESP_LOGI(TAG, "Waiting for frame");
     xSemaphoreTake(s_state->frame_ready,portMAX_DELAY);
-    get_bmp();
+    get_bmp(pictureFilename);
   /*  int r,g,b,j;
    for(j=0;j<57600;j+=3)
    {
@@ -410,26 +409,15 @@ esp_err_t camera_run()
     return ESP_OK;
 }
 
-static void get_bmp()
+static void get_bmp(const char *pictureFilename)
 {
-   ESP_LOGI(TAG, "init SDcard");
-   int ret=SDcard_init();
-   if(ret==0)
-   {
-	  ESP_LOGI(TAG, "SDcard ERROR!");
-	  while(1)
-	  {
-		 vTaskDelay(1000/portTICK_PERIOD_MS); 
-	  }
-   }
-   ESP_LOGD(TAG, "init SDcard");
    HANDLE_BMP bmp= (HANDLE_BMP)calloc(1,sizeof(struct BMP));
    ESP_LOGD(TAG, "calloc bmp");
    if (bmp == NULL) {
       printf("BMP_OutputOpen(): Unable to allocate BMP struct.\n");
       
     }  
-   bmp->fp = fopen("/sdcard/image.bmp", "wb");
+   bmp->fp = fopen(pictureFilename, "wb");
    ESP_LOGD(TAG, "open file");
    bmp->header.BfType=19778;   
    ESP_LOGD(TAG, "set BM");   
@@ -450,12 +438,11 @@ static void get_bmp()
    bmp->header.BiClrUsed=0;
    bmp->header.BiClrImportant=0;
    ESP_LOGD(TAG, "set head");
-   //fseek(bmp->fp,54,0);
    fwrite(&(bmp->header.BfType) , 1, 54 , bmp->fp);
    ESP_LOGD(TAG, "write file");
    int r,g,b,gry,j;
   for(j=0;j<57600;j+=3)
-   {
+   {     
          b=s_state->fb[j];
          g=s_state->fb[j+1];
          r=s_state->fb[j+2];
@@ -471,12 +458,11 @@ ESP_LOGI(TAG,"b=0x%2x , g=0x%2x , r=0x%2x",b,g,r);
      bmp->header.BiSizeTmage+=2;
    }
   fseek(bmp->fp,2,0);
-  ESP_LOGI(TAG, "fwrite"); 
+  ESP_LOGE(TAG, "Save data"); 
   vTaskDelay(10 / portTICK_PERIOD_MS);
   fwrite(&(bmp->header.BfSize) , 1, 52, bmp->fp);
-  ESP_LOGD(TAG, "f done"); 
   fclose(bmp->fp);
-  ESP_LOGI(TAG, "fclose");
+  ESP_LOGE(TAG, "DONE");
 }
 
 static esp_err_t dma_desc_init()
@@ -867,7 +853,7 @@ static void IRAM_ATTR dma_filter_rgb565(const dma_elem_t* src, lldesc_t* dma_des
     }
 }
 
-void takephoto()
+void cameramode()
 {
     camera_config_t camera_config;
 	    camera_config.pin_d0 = 17;
@@ -895,7 +881,7 @@ void takephoto()
         return;
     }
     if (camera_model == CAMERA_OV7725) {
-        ESP_LOGE(TAG, "Detected OV7725 camera, using rgb565 bitmap format");
+        ESP_LOGE(TAG, "Detected OV7725 camera, using rgb555 bitmap format");
         s_pixel_format = CAMERA_PF_RGB565;
         camera_config.frame_size = CAMERA_FRAME_SIZE;
     } else if (camera_model == CAMERA_OV2640) {
@@ -908,19 +894,10 @@ void takephoto()
         return;
     }
     camera_config.pixel_format = s_pixel_format;
-	ESP_LOGE(TAG, "Camera init ");
     err = camera_init(&camera_config);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Camera init failed with error 0x%x", err);
         return;
     }
-  while(1)
-  {	  
-    while((gpio_input_get()&0x00010000))
-	{
-	  vTaskDelay(10 / portTICK_PERIOD_MS);
-	}
-	camera_run();
-    ESP_LOGE(TAG, "DONE");
-  }
+	ESP_LOGE(TAG,"Camera Ready");
 }

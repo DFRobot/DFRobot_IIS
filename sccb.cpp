@@ -27,19 +27,19 @@ uint8_t SCCB_Probe()
             vTaskDelay(1/ portTICK_PERIOD_MS); // Necessary for OV7725 camera (not for OV2640).
         }
     }
-    return slv_addr;
+    return 0x21;
 }
 
 uint8_t SCCB_Read(uint8_t slv_addr, uint8_t reg)
 {
     uint8_t data=0;
     __disable_irq();
-    int rc = twi_writeTo(slv_addr, &reg, 1, true);
+    int rc = twi_writeTo(0x21, &reg, 1, true);
     if (rc != 0) {
         data = 0xff;
     }
     else {
-        rc = twi_readFrom(slv_addr, &data, 1, true);
+        rc = twi_readFrom(0x21, &data, 1, true);
         if (rc != 0) {
             data=0xFF;
         }
@@ -57,7 +57,7 @@ uint8_t SCCB_Write(uint8_t slv_addr, uint8_t reg, uint8_t data)
     uint8_t buf[] = {reg, data};
 
     __disable_irq();
-    if(twi_writeTo(slv_addr, buf, 2, true) != 0) {
+    if(twi_writeTo(0x21, buf, 2, true) != 0) {
         ret=0xFF;
     }
     __enable_irq();

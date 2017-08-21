@@ -2,7 +2,6 @@
 #include "esp_err.h"
 #include "driver/ledc.h"
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -61,17 +60,14 @@ typedef struct {
 #define ESP_ERR_CAMERA_FAILED_TO_SET_FRAME_SIZE (ESP_ERR_CAMERA_BASE + 2)
 #define ESP_ERR_CAMERA_NOT_SUPPORTED            (ESP_ERR_CAMERA_BASE + 3)
 
-
-void takephoto();
+void      cameramode();
+int       camera_get_fb_width();
+int       camera_get_fb_height();
 esp_err_t camera_probe(const camera_config_t* config, camera_model_t* out_camera_model);
 esp_err_t camera_init(const camera_config_t* config);
-uint8_t* camera_get_fb();
-    size_t camera_get_data_size();
-    int camera_get_fb_width();
-    int camera_get_fb_height();
-	esp_err_t camera_run();
-	
-
+esp_err_t camera_run(const char *pictureFilename);
+uint8_t*  camera_get_fb();
+size_t    camera_get_data_size();
 
 #ifdef __cplusplus
 }

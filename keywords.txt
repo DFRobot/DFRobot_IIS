@@ -17,6 +17,8 @@ init         KEYWORD2
 setVolume    KEYWORD2
 playMusic	 KEYWORD2
 recordSound	 KEYWORD2
+AUDIO        KEYWORD2
+CAMERA       KEYWORD2
 
 #######################################
 # Constants (LITERAL1)

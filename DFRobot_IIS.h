@@ -40,21 +40,21 @@ extern "C" {
 #include "sdmmc_cmd.h"
 }
 
-#define I2S_MCLK 22//27
+#define I2S_MCLK 22
 #define WRITE_BIT  I2C_MASTER_WRITE
 #define READ_BIT   I2C_MASTER_READ
 #define ESP_SLAVE_ADDR   (0X34) 
 #define ACK_CHECK_EN   0x1     
 #define ACK_CHECK_DIS  0x0     
 #define I2C_MASTER_NUM  I2C_NUM_1
-#define I2C_MASTER_SCL_IO   GPIO_NUM_27//22
-#define I2C_MASTER_SDA_IO   GPIO_NUM_26//21
+#define I2C_MASTER_SCL_IO   GPIO_NUM_27
+#define I2C_MASTER_SDA_IO   GPIO_NUM_26
 #define I2C_MASTER_TX_BUF_DISABLE   0  
 #define I2C_MASTER_RX_BUF_DISABLE   0  
 #define I2C_MASTER_FREQ_HZ     600
 
-#define Audioplay  0
-#define Camera     1
+#define AUDIO      0
+#define CAMERA     1
 
 typedef struct WAV_HEADER
 {
@@ -99,6 +99,7 @@ public:
   void setVolume(int volume);
   int  playMusic(const char *filename);
   int  recordSound(const char *outputFilename, uint32_t samplerate=32000, i2s_channel_t numchannels=I2S_CHANNEL_STEREO, i2s_bits_per_sample_t bitspersample=I2S_BITS_PER_SAMPLE_16BIT);
+  void takephoto(const char *pictureFilename);
   void I2C_Setup_WAU8822_play();
   void I2C_Setup_WAU8822_record();
 private:

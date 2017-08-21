@@ -1,12 +1,12 @@
 /*!
  * @file DFRobot_IIS.h
  * @brief DFRobot's IIS Module
- * @n IIS Module for recordSound
+ * @n IIS Module for recordSound and save WAV file in SD card 
  *
  * @copyright	[DFRobot](http://www.dfrobot.com), 2017
  * @copyright	GNU Lesser General Public License
  *
- * @author [Zhangjiawei]
+ * @author [Zhangjiawei<jiawei.zhang@dfrobot.com>]
  * @version  V1.0
  * @date  2017-8-1
  */
@@ -14,18 +14,14 @@
 #include <Wire.h>
 #include "DFRobot_IIS.h"
 
-
-
 DFRobot_IIS iis;
-
 
 void setup() {
   Serial.begin(115200);
-  iis.init(Audioplay);
-  iis.recordSound("/sdcard/record.WAV");
+  iis.init(AUDIO);                        // Init Audio mode and SD card
+  iis.recordSound("/sdcard/record.WAV");  // Press user key to start and stop record  
 }
 
 void loop() {
-  
   delay(500);
 }

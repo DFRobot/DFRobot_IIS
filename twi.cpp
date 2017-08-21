@@ -202,7 +202,7 @@ static unsigned char twi_read_byte(bool nack) {
 unsigned char twi_writeTo(unsigned char address, unsigned char * buf, unsigned int len, unsigned char sendStop){
   unsigned int i;
   if(!twi_write_start()) return 4;//line busy
-  if(!twi_write_byte(((address << 1) | 0) & 0xFF)) {
+  if(!twi_write_byte(((0x21 << 1) | 0) & 0xFF)) {
     if (sendStop) twi_write_stop();
     return 2; //received NACK on transmit of address
   }
@@ -226,7 +226,7 @@ unsigned char twi_writeTo(unsigned char address, unsigned char * buf, unsigned i
 unsigned char twi_readFrom(unsigned char address, unsigned char* buf, unsigned int len, unsigned char sendStop){
   unsigned int i;
   if(!twi_write_start()) return 4;//line busy
-  if(!twi_write_byte(((address << 1) | 1) & 0xFF)) {
+  if(!twi_write_byte(((0x21 << 1) | 1) & 0xFF)) {
     if (sendStop) twi_write_stop();
     return 2;//received NACK on transmit of address
   }

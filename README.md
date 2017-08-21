@@ -1,13 +1,13 @@
 DFRobot_IIS Library for Arduino
 ---------------------------------------------------------
 
-The library is used to play music recording and take photo
+The library is used to play music and recording
 
-### Enter the audio mode 
+### Enter the audio mode or camera mod
   
-    void init(int Audioplay);
+    void init(int mode);
    
-### Enter the WAV file name in the SD card you want to play , press user key to stop and continue
+### Enter the WAV file name in the SD card you want to play
     
     int playMusic(const char *filename);
 	
@@ -15,13 +15,13 @@ The library is used to play music recording and take photo
 
     void setVolume(int volume);
 
-### Enter the WAV file name you want to store in the SD card , press user key to stop record
+### Enter the WAV file name you want to store in the SD card 
 
     int recordSound(const char *outputFilename);
-
-### Enter the camera mode and take photo 
-
-    void init(int Camera);
+	
+### Enter the BMP file name you want to store in the SD card
+   
+    void takephoto(const char *pictureFilename);   
  
  * @file playmusic.ino and record.ino
  * @brief DFRobot's IIS Module
