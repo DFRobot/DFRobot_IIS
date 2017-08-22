@@ -23,80 +23,133 @@
 #include "esp_log.h"
 #include "camera.h"
 
-void DFRobot_IIS::init(int mode)
+char *filename;
+char *pictureFilename;
+uint8_t mark=3;
+uint8_t Volume1=57;
+uint8_t Volume2=57;
+
+bool DFRobot_IIS::init(int mode)
 {
 	int ret=SDcard_init();
 	if(ret==0)
     {
 	  printf("SDcard ERROR! \n");
-	  while(1)
-	  {
-		 vTaskDelay(1000/portTICK_PERIOD_MS); 
-	  }
+	  return false;
     }
-	if(mode==0){
-	I2C_Master_Init();
+	if(mode==AUDIO){
+	mark=3;
+	return true;
 	}
-	else if(mode==1){
+	else if(mode==CAMERA){
+    I2C_Master_Init();
+	I2C_WriteWAU8822(0,  0x000); 
+	I2C_WriteWAU8822(52, 0x040);   
+    I2C_WriteWAU8822(53, 0x040);
+    I2C_WriteWAU8822(54, 0x040);
+    I2C_WriteWAU8822(55, 0x040);  
+	i2c_driver_delete(I2C_MASTER_NUM);
     cameramode();
+	return true;
 	}
-	else 
+	else {
     printf("No such mode ");
+	return false;
+    }
 }
-
-void DFRobot_IIS::setVolume(int volume)
-{
+void DFRobot_IIS::setSpeakersVolume(uint8_t volume)
+{   
+   if(volume==0)
+   {
+	I2C_Master_Init();
+	I2C_WriteWAU8822(0,  0x000); 
+	I2C_WriteWAU8822(52, 0x040);   
+    I2C_WriteWAU8822(53, 0x040);   
+	i2c_driver_delete(I2C_MASTER_NUM);
+	return ;
+   }
 	while(volume>100)
 	{
 		volume-=100;
 	}
-	 Volume=(volume*64/100);
+	Volume1=(volume*64/100);
+	I2C_Master_Init();
+	I2C_WriteWAU8822(0,  0x000); 
+	I2C_WriteWAU8822(52, Volume1);   
+    I2C_WriteWAU8822(53, Volume1+256);   
+	i2c_driver_delete(I2C_MASTER_NUM);
+	printf("setSpeakersVolume \n");
 }
 
-int DFRobot_IIS::playMusic(const char *filename)
+void DFRobot_IIS::setHeadphonesVolume(uint8_t volume)
 {
-	vTaskDelay(1000);
+	if(volume==0)
+   {
+	I2C_Master_Init();
+	I2C_WriteWAU8822(0,  0x000); 
+	I2C_WriteWAU8822(54, 0x040);   
+    I2C_WriteWAU8822(55, 0x040);   
+	i2c_driver_delete(I2C_MASTER_NUM);
+	return ;
+   }
+	while(volume>100)
+	{
+		volume-=100;
+	}
+	 Volume2=(volume*64/100);
+	I2C_Master_Init();
+	I2C_WriteWAU8822(0,  0x000); 
+	I2C_WriteWAU8822(54, Volume2);   
+    I2C_WriteWAU8822(55, Volume2+256);   
+	i2c_driver_delete(I2C_MASTER_NUM);
+	printf("setHeadphonesVolume \n");
+}
+
+void playWAV(void *arg)
+{
+while(1){
+	I2C_Master_Init();
 	I2C_Setup_WAU8822_play();
-	printf("ready to playMusic \n");
-	while((gpio_input_get()&0x00010000)){
-		 vTaskDelay(100);
-	 }
-	printf("playMusic \n");
+	printf("ready to playWAV: %s\n",filename);
+	while(mark==STOP){
+	  vTaskDelay(100);
+	}	
+	printf("playWAV: %s\n",filename);
 	HANDLE_WAV wav = (HANDLE_WAV)calloc(1, sizeof(struct WAV));
     if (wav == NULL) {
-      printf("playMusic(): Unable to allocate WAV struct.\n");
-      goto error;
+      printf("playWAV(): Unable to allocate WAV struct.\n");
+      return;
     }  
 	vTaskDelay(100);
     wav->fp = fopen(filename, "rb");
     if (wav->fp == NULL) {
-      printf("playMusic(): Unable to open wav file. %s\n", filename);
-      goto error;
+      printf("playWAV(): Unable to open wav file. %s\n", filename);
+      return;
     }
     if (fread(&(wav->header.riffType), 1, 4, wav->fp) != 4) {
-      printf("playMusic(): couldn't read RIFF_ID\n");
-      goto error;  /* bad error "couldn't read RIFF_ID" */
+      printf("playWAV(): couldn't read RIFF_ID\n");
+      return;  /* bad error "couldn't read RIFF_ID" */
     }
     if (strncmp("RIFF", wav->header.riffType, 4)) {
-      printf("playMusic(): RIFF descriptor not found.\n") ;
-      goto error;
+      printf("playWAV(): RIFF descriptor not found.\n") ;
+      return;
     }
     fread(&(wav->header.riffSize), 4, 1, wav->fp);
     if (fread(&wav->header.waveType, 1, 4, wav->fp) !=4) {
-      printf("playMusic(): couldn't read format\n");
-      goto error;  /* bad error "couldn't read format" */
+      printf("playWAV(): couldn't read format\n");
+      return;  /* bad error "couldn't read format" */
     }
     if (strncmp("WAVE", wav->header.waveType, 4)) {
-      printf("playMusic(): WAVE chunk ID not found.\n") ;
-      goto error;
+      printf("playWAV(): WAVE chunk ID not found.\n") ;
+      return;
     }
     if (fread(&(wav->header.formatType), 1, 4, wav->fp) != 4) {
-      printf("playMusic(): couldn't read format_ID\n");
-      goto error;  /* bad error "couldn't read format_ID" */
+      printf("playWAV(): couldn't read format_ID\n");
+      return;  /* bad error "couldn't read format_ID" */
     }
     if (strncmp("fmt", wav->header.formatType, 3)) {
-      printf("playMusic(): fmt chunk format not found.\n") ;
-     goto error;
+      printf("playWAV(): fmt chunk format not found.\n") ;
+     return;
     }
     fread(&(wav->header.formatSize), 4, 1, wav->fp);   
     fread(&(wav->header.compressionCode), 2, 1, wav->fp);
@@ -107,9 +160,9 @@ int DFRobot_IIS::playMusic(const char *filename)
     fread(&(wav->header.bitsPerSample), 2, 1, wav->fp);
     while(1){
         if (fread(&wav->header.dataType1, 1, 1, wav->fp) != 1) {
-        printf("playMusic(): Unable to read data chunk ID.\n");
+        printf("playWAV(): Unable to read data chunk ID.\n");
         free(wav);
-        goto error;
+        break;
         }
         if (strncmp("d", wav->header.dataType1, 1) == 0) {
             fread(&wav->header.dataType2, 3, 1, wav->fp);
@@ -123,55 +176,66 @@ int DFRobot_IIS::playMusic(const char *filename)
 	I2S_MCLK_Init(wav->header.sampleRate);
     I2S_Master_Init(wav->header.sampleRate ,wav->header.bitsPerSample);
     i2s_set_sample_rates(I2S_NUM_0, wav->header.sampleRate);
-	int p;
-	p =1;
-    while(fread(&wav->header.test, 1 , 800 , wav->fp)){
+	while(fread(&wav->header.test, 1 , 800 , wav->fp)){
         char *buf=(char *)&wav->header.test;
         int bytes_left=800,bytes_written = 0;
-        while(bytes_left > 0) {
+        while(bytes_left > 0){
             bytes_written = i2s_write_bytes(I2S_NUM_0 , buf , bytes_left , 0);
             bytes_left -= bytes_written;
 			buf += bytes_written;
-			if(!(gpio_input_get()&0x00010000)){
-				I2C_WriteWAU8822(52, 0x040);   
+			if(mark==PAUSE){
+				I2C_Master_Init();
+	            I2C_WriteWAU8822(52, 0x040);   
                 I2C_WriteWAU8822(53, 0x040);
                 I2C_WriteWAU8822(54, 0x040);
                 I2C_WriteWAU8822(55, 0x040);  				
-			    p =0;
-				printf("stop \n");
-			    vTaskDelay(500);
-				while(((gpio_input_get()&0x00010000))&&(p==0)){
-			     	//printf("stop \n");
-				    while((gpio_input_get()&0x00010000)){
-					
-			        vTaskDelay(100);
-			        }
-				p=1;
-				printf("continue \n");
-				vTaskDelay(1000);
-				I2C_WriteWAU8822(52, Volume);   
-                I2C_WriteWAU8822(53, Volume+256); 
-				I2C_WriteWAU8822(54, Volume);
-                I2C_WriteWAU8822(55, Volume+256);
+	            printf("pause \n");
+	            vTaskDelay(500);
+		        while(mark==PAUSE){
+	     			vTaskDelay(100);
 			    }
-		    } 
-		}   
-    }
-	printf("playMusic over \n");
+				printf("continue \n");
+			    vTaskDelay(100);
+			    I2C_WriteWAU8822(52, Volume1);   
+                I2C_WriteWAU8822(53, Volume1+256); 
+		        I2C_WriteWAU8822(54, Volume2);
+                I2C_WriteWAU8822(55, Volume2+256);
+				i2c_driver_delete(I2C_MASTER_NUM);
+		    }   
+        }
+		if(mark==STOP){
+	    I2C_Master_Init();
+        I2C_WriteWAU8822(52, 0x040);   
+        I2C_WriteWAU8822(53, 0x040);
+        I2C_WriteWAU8822(54, 0x040);
+        I2C_WriteWAU8822(55, 0x040);
+		i2c_driver_delete(I2C_MASTER_NUM);
+		printf("stop \n");
+		break;
+        }		
+	}
     i2s_stop(I2S_NUM_0);
 	i2s_driver_uninstall(I2S_NUM_0);
 	fclose(wav->fp);
-	esp_vfs_fat_sdmmc_unmount();
-    return 1;
-error:
-    if (wav) {
-      if (wav->fp) {
-        fclose(wav->fp);
-        wav->fp = NULL;
-      }
-      free(wav);
-    }
-    return -1;
+	//esp_vfs_fat_sdmmc_unmount();
+	free(wav);
+	printf("playWAV over \n");
+}
+}
+
+void DFRobot_IIS::playMusic(const char *Filename){
+	filename=(char *)Filename;
+	xTaskCreate(playWAV, "playWAV",2048, NULL, 5, NULL);
+}
+
+void DFRobot_IIS::playerControl(uint8_t cmd)
+{
+	mark=cmd;
+}
+
+void DFRobot_IIS::changeMusic(const char *Filename){
+    filename=(char *)Filename;
+	printf("ready to playWAV: %s\n",filename);
 }
 
 int DFRobot_IIS::recordSound(const char *outputFilename, uint32_t samplerate, i2s_channel_t numchannels, i2s_bits_per_sample_t bitspersample)
@@ -227,7 +291,6 @@ int DFRobot_IIS::recordSound(const char *outputFilename, uint32_t samplerate, i2
   while((gpio_input_get()&0x00010000)) {
     bytes_written = i2s_read_bytes(I2S_NUM_0 ,buf, 800 , 100);
 	wav->header.dataSize+=fwrite(buf, 1, bytes_written , wav->fp);
-	//printf("bytes_written=%d \n",bytes_written);
   }  
   printf("record done \n");
   wav->header.riffSize =wav->header.dataSize+44;
@@ -278,8 +341,9 @@ void I2C_WriteWAU8822(int8_t addr, int16_t data)
     i2c_cmd_link_delete(cmd);
 }
 
-void DFRobot_IIS::I2C_Setup_WAU8822_play()
+void I2C_Setup_WAU8822_play()
 {
+	I2C_Master_Init();
     I2C_WriteWAU8822(0,  0x000);   
     vTaskDelay(10);
     I2C_WriteWAU8822(1,  0x1FF);  
@@ -299,15 +363,12 @@ void DFRobot_IIS::I2C_Setup_WAU8822_play()
     I2C_WriteWAU8822(48, 0x175);   
     I2C_WriteWAU8822(50, 0x001);   
     I2C_WriteWAU8822(51, 0x001); 
-	I2C_WriteWAU8822(52, Volume);   
-    I2C_WriteWAU8822(53, Volume+256);   
-    I2C_WriteWAU8822(54, Volume);   
-    I2C_WriteWAU8822(55, Volume+256);  
-    i2c_driver_delete(I2C_MASTER_NUM);	
+	i2c_driver_delete(I2C_MASTER_NUM);	
 }
 
-void DFRobot_IIS::I2C_Setup_WAU8822_record()
+void I2C_Setup_WAU8822_record()
 {
+	I2C_Master_Init();
     I2C_WriteWAU8822(0,  0x000);   
     vTaskDelay(10);
     I2C_WriteWAU8822(1,  0x1FF);  
@@ -372,10 +433,10 @@ void I2S_Master_Init(uint32_t SAMPLE_RATE,i2s_bits_per_sample_t BITS_PER_SAMPLE)
 	i2s_config.dma_buf_count = 5;
 	i2s_config.dma_buf_len   = 100;
     i2s_pin_config_t pin_config = {
-        .bck_io_num   =5,
-        .ws_io_num    =17,
-        .data_out_num =0,
-        .data_in_num  =36                                                      
+        .bck_io_num   = 5,
+        .ws_io_num    = 17,
+        .data_out_num = 0,
+        .data_in_num  = 36                                                      
     };
 	i2s_driver_install(I2S_NUM_0, &i2s_config, 0, NULL);
     i2s_set_pin(I2S_NUM_0, &pin_config);
@@ -396,7 +457,7 @@ void I2S_Slave_Init(uint32_t SAMPLE_RATE,i2s_bits_per_sample_t BITS_PER_SAMPLE)
     i2s_pin_config_t pin_config = {
         .bck_io_num   = 5,
         .ws_io_num    = 17,
-        .data_out_num =0,
+        .data_out_num = 0,
         .data_in_num  = 36                                                      
     };
     i2s_driver_install(I2S_NUM_0, &i2s_config, 0, NULL);

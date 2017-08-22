@@ -27,6 +27,7 @@ extern "C" {
 #include "xclk.h"
 #include "bmp.h"
 #include "SDcard.h"
+
 #define CONFIG_OV7725_SUPPORT 1
 #if CONFIG_OV2640_SUPPORT
 #include "ov2640.h"
@@ -38,12 +39,12 @@ extern "C" {
 #define ENABLE_TEST_PATTERN CONFIG_ENABLE_TEST_PATTERN
 #define CAMERA_PIXEL_FORMAT CAMERA_PF_RGB565
 #define CAMERA_FRAME_SIZE CAMERA_FS_QQVGA
-static camera_pixelformat_t s_pixel_format;
 #define REG_PID        0x0A
 #define REG_VER        0x0B
 #define REG_MIDH       0x1C
 #define REG_MIDL       0x1D
 
+static camera_pixelformat_t s_pixel_format;
 static const char* TAG = "camera";
 
 camera_state_t* s_state = NULL;
@@ -104,6 +105,7 @@ esp_err_t camera_probe(const camera_config_t* config, camera_model_t* out_camera
 		ESP_LOGE(TAG, "s_state != NULL");
         return ESP_ERR_INVALID_STATE;
     }
+
     s_state = (camera_state_t*) calloc(sizeof(*s_state), 1);
     if (!s_state) {
         return ESP_ERR_NO_MEM;
