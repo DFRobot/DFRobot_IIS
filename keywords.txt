@@ -12,23 +12,23 @@ DFRobot_IIS	KEYWORD1
 # Methods and Functions (KEYWORD2)
 #######################################	
 
-init                 KEYWORD2
-setSpeakersVolume    KEYWORD2
-setHeadphonesVolume  KEYWORD2
-playMusic            KEYWORD2
-playerControl        KEYWORD2
-recorderControl      KEYWORD2
-initPlayer           KEYWORD2
-initRecorder         KEYWORD2
-record	             KEYWORD2
-takephoto            KEYWORD2
+init	KEYWORD2
+setSpeakersVolume	KEYWORD2
+setHeadphonesVolume	KEYWORD2
+playMusic	KEYWORD2
+playerControl	KEYWORD2
+recorderControl	KEYWORD2
+initPlayer	KEYWORD2
+initRecorder	KEYWORD2
+record	KEYWORD2
+takephoto	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
 #######################################
-AUDIO                LITERAL1
-CAMERA               LITERAL1
-PLAY                 LITERAL1
-BEGIN                LITERAL1
-PAUSE                LITERAL1
-STOP                 LITERAL1
+AUDIO	LITERAL1
+CAMERA	LITERAL1
+PLAY	LITERAL1
+BEGIN	LITERAL1
+PAUSE	LITERAL1
+STOP	LITERAL1
