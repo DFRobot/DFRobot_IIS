@@ -57,6 +57,7 @@ extern "C" {
 #define CAMERA     1
 
 #define PLAY       1
+#define BEGIN      1
 #define PAUSE      2
 #define STOP       3
 
@@ -107,6 +108,8 @@ public:
   void playMusic(const char *Filename);
   void changeMusic(const char *Filename);
   void playerControl(uint8_t cmd);
-  int  recordSound(const char *outputFilename, uint32_t samplerate=32000, i2s_channel_t numchannels=I2S_CHANNEL_STEREO, i2s_bits_per_sample_t bitspersample=I2S_BITS_PER_SAMPLE_16BIT);
+  void recorderControl(uint8_t cmd);
+  void changeRecord(const char *Filename);
+  void record(const char *Filename);
 };
 #endif

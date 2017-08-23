@@ -485,7 +485,6 @@ static esp_err_t dma_desc_init()
     s_state->dma_desc_count = dma_desc_count;
     ESP_LOGD(TAG, "DMA buffer size: %d, DMA buffers per line: %d", buf_size, dma_per_line);
     ESP_LOGD(TAG, "DMA buffer count: %d", dma_desc_count);
-
     s_state->dma_buf = (dma_elem_t**) malloc(sizeof(dma_elem_t*) * dma_desc_count);
     if (s_state->dma_buf == NULL) {
         return ESP_ERR_NO_MEM;
@@ -624,7 +623,6 @@ static void i2s_init()
     I2S0.conf.rx_mono = 0;
     I2S0.conf.rx_short_sync = 0;
     I2S0.timing.val = 0;
-
     // Allocate I2S interrupt, keep it disabled
     esp_intr_alloc(ETS_I2S0_INTR_SOURCE,
     ESP_INTR_FLAG_INTRDISABLED | ESP_INTR_FLAG_LEVEL1 | ESP_INTR_FLAG_IRAM,

@@ -44,15 +44,11 @@ typedef struct {
     int pin_vsync;          /*!< GPIO pin for camera VSYNC line */
     int pin_href;           /*!< GPIO pin for camera HREF line */
     int pin_pclk;           /*!< GPIO pin for camera PCLK line */
-
     int xclk_freq_hz;       /*!< Frequency of XCLK signal, in Hz */
-
     ledc_timer_t ledc_timer;        /*!< LEDC timer to be used for generating XCLK  */
     ledc_channel_t ledc_channel;    /*!< LEDC channel to be used for generating XCLK  */
-
     camera_pixelformat_t pixel_format;
     camera_framesize_t frame_size;
-
     int jpeg_quality;
 } camera_config_t;
 

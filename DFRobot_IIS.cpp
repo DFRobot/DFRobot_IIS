@@ -25,6 +25,7 @@
 
 char *filename;
 char *pictureFilename;
+char *outputFilename;
 uint8_t mark=3;
 uint8_t Volume1=57;
 uint8_t Volume2=57;
@@ -109,8 +110,7 @@ void playWAV(void *arg)
 {
 while(1){
 	I2C_Master_Init();
-	I2C_Setup_WAU8822_play();
-	printf("ready to playWAV: %s\n",filename);
+	I2C_Setup_WAU8822_play();	
 	while(mark==STOP){
 	  vTaskDelay(100);
 	}	
@@ -217,14 +217,15 @@ while(1){
     i2s_stop(I2S_NUM_0);
 	i2s_driver_uninstall(I2S_NUM_0);
 	fclose(wav->fp);
-	//esp_vfs_fat_sdmmc_unmount();
 	free(wav);
-	printf("playWAV over \n");
+	printf("play over \n");
+	mark=STOP;
 }
 }
 
 void DFRobot_IIS::playMusic(const char *Filename){
-	filename=(char *)Filename;
+	filename=(char *)Filename;	
+	printf("ready to play: %s\n",filename);
 	xTaskCreate(playWAV, "playWAV",2048, NULL, 5, NULL);
 }
 
@@ -233,46 +234,48 @@ void DFRobot_IIS::playerControl(uint8_t cmd)
 	mark=cmd;
 }
 
-void DFRobot_IIS::changeMusic(const char *Filename){
+void DFRobot_IIS::changeMusic(const char *Filename){	
     filename=(char *)Filename;
-	printf("ready to playWAV: %s\n",filename);
+	printf("ready to play: %s\n",filename);
 }
 
-int DFRobot_IIS::recordSound(const char *outputFilename, uint32_t samplerate, i2s_channel_t numchannels, i2s_bits_per_sample_t bitspersample)
+void recordSound(void *arg)
 {
+while(1){
+  I2C_Master_Init();
   I2C_Setup_WAU8822_record();
   HANDLE_WAV wav = (HANDLE_WAV)calloc(1, sizeof(struct WAV));
+  
+  while(mark==STOP){
+	  vTaskDelay(100);
+	}	
   unsigned int size = 0;
   if (wav == NULL) {
     printf("recordSound(): Unable to allocate WAV struct.\n");
-    return 1;
-  }
-  if (bitspersample != 16 && bitspersample != 24 && bitspersample != 32){
-      printf("recordSound(): Invalid argument (bitsPerSample).\n");
-      return 1;
-  }
+    return ;
+  }  
   wav->fp = fopen(outputFilename, "wb");
   if (wav->fp == NULL){
     printf("recordSound(): unable to create file %s\n", outputFilename);
-    return 1;
+    return ;
   }
   strcpy(wav->header.riffType, "RIFF");
   wav->header.riffSize = 0;  
   strcpy(wav->header.waveType, "WAVE");
   strcpy(wav->header.formatType, "fmt ");
-  wav->header.formatSize      =0x00000010;
+  wav->header.formatSize      = 0x00000010;
   fwrite(&wav->header.riffType, 1, 20 , wav->fp);
   wav->header.compressionCode = 1;
   fwrite(&wav->header.compressionCode, 1 , 2 , wav->fp);
-  wav->header.numChannels     = numchannels;
+  wav->header.numChannels     = I2S_CHANNEL_STEREO;
   fwrite(&wav->header.numChannels, 1, 2, wav->fp);
-  wav->header.sampleRate      = samplerate;
+  wav->header.sampleRate      = 32000;
   fwrite(&wav->header.sampleRate, 1, 4 , wav->fp);
-  wav->header.blockAlign      = (short)(numchannels *(bitspersample >> 3));
-  wav->header.bytesPerSecond  = (samplerate)*(wav->header.blockAlign);
+  wav->header.blockAlign      = (short)(I2S_CHANNEL_STEREO *(I2S_BITS_PER_SAMPLE_16BIT >> 3));
+  wav->header.bytesPerSecond  = (32000)*(wav->header.blockAlign);
   fwrite(&wav->header.bytesPerSecond, 1, 4 , wav->fp);
   fwrite(&wav->header.blockAlign, 1, 2 , wav->fp);
-  wav->header.bitsPerSample   = bitspersample;
+  wav->header.bitsPerSample   = I2S_BITS_PER_SAMPLE_16BIT;
   fwrite(&wav->header.bitsPerSample, 1, 2 , wav->fp);
   strcpy(wav->header.dataType1, "d");
   strcpy(wav->header.dataType2, "ata");
@@ -280,15 +283,11 @@ int DFRobot_IIS::recordSound(const char *outputFilename, uint32_t samplerate, i2
   fwrite(&wav->header.dataType1 ,1,8, wav->fp);
   int bytes_written = 0;
   char *buf=(char *)&wav->header.test;
-  I2S_MCLK_Init(samplerate);
-  I2S_Slave_Init(samplerate,bitspersample);
-  printf("ready to record \n");
-  while((gpio_input_get()&0x00010000)){
-	  vTaskDelay(100);
-  }
+  I2S_MCLK_Init(32000);
+  I2S_Slave_Init(32000,I2S_BITS_PER_SAMPLE_16BIT);
   printf("recording  \n");
   vTaskDelay(1000);
-  while((gpio_input_get()&0x00010000)) {
+  while(mark!=STOP) {
     bytes_written = i2s_read_bytes(I2S_NUM_0 ,buf, 800 , 100);
 	wav->header.dataSize+=fwrite(buf, 1, bytes_written , wav->fp);
   }  
@@ -301,16 +300,33 @@ int DFRobot_IIS::recordSound(const char *outputFilename, uint32_t samplerate, i2
   fclose(wav->fp);
   i2s_stop(I2S_NUM_0);
   i2s_driver_uninstall(I2S_NUM_0);
-  printf("save data \n");
+  printf("save record as %s\n",outputFilename);
   vTaskDelay(1000);
-  esp_vfs_fat_sdmmc_unmount();
-  return 1;
+}
+}
+
+void DFRobot_IIS::record(const char *Filename)
+{
+	outputFilename=(char *)Filename;
+	printf("ready to record %s\n",outputFilename);
+	xTaskCreate(recordSound, "recordSound",2048, NULL, 5, NULL);
+}
+
+void DFRobot_IIS::recorderControl(uint8_t cmd)
+{
+	mark=cmd;
+}
+
+void DFRobot_IIS::changeRecord(const char *Filename)
+{
+	outputFilename=(char *)Filename;
+	printf("ready to record %s\n",outputFilename);
 }
 
 void DFRobot_IIS::takephoto(const char *pictureFilename)
 {
     camera_run(pictureFilename);
-    printf("DONE");
+    printf("Take photo %s \n",pictureFilename);
 }
 
 void I2C_Master_Init()
@@ -324,9 +340,7 @@ void I2C_Master_Init()
     conf.scl_pullup_en    = GPIO_PULLUP_ENABLE;
     conf.master.clk_speed = I2C_MASTER_FREQ_HZ ;
     i2c_param_config(i2c_master_port, &conf);
-    i2c_driver_install(i2c_master_port, conf.mode,
-                       I2C_MASTER_RX_BUF_DISABLE,
-                       I2C_MASTER_TX_BUF_DISABLE, 0);
+    i2c_driver_install(i2c_master_port, conf.mode,I2C_MASTER_RX_BUF_DISABLE,I2C_MASTER_TX_BUF_DISABLE, 0);
 }
 
 void I2C_WriteWAU8822(int8_t addr, int16_t data)

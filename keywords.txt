@@ -18,12 +18,15 @@ setSpeakersVolume    KEYWORD2
 setHeadphonesVolume  KEYWORD2
 playMusic            KEYWORD2
 playerControl        KEYWORD2
+recorderControl      KEYWORD2
 changeMusic          KEYWORD2
-recordSound	         KEYWORD2
+changeRecord         KEYWORD2
+record	             KEYWORD2
 takephoto            KEYWORD2
 AUDIO                KEYWORD2
 CAMERA               KEYWORD2
 PLAY                 KEYWORD2
+BEGIN                KEYWORD2
 PAUSE			     KEYWORD2
 STOP			     KEYWORD2
 
