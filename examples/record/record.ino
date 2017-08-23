@@ -15,44 +15,45 @@
  */
  
 #include <Wire.h>
-#include "DFRobot_IIS.h"
+#include <DFRobot_IIS.h>
 
 DFRobot_IIS iis;
 const int buttonPin = 16; 
-enum status{
-  ready,
-  recording,
-  stop
-}i=ready;
+enum Status{
+  Ready,
+  Recording,
+  Stop
+}state=Ready;
 
 void setup() {
   Serial.begin(115200);
   iis.init(AUDIO);                             // Init Audio mode and SD card
-  iis.record("/sdcard/record1.WAV");           // Init recorder and enter file name   
+  iis.initRecorder();                          // Init recorder 
+  iis.record("/sdcard/record1.WAV");           // Enter file name to save recording
 }
 
 void loop() {
-  if((!digitalRead(buttonPin))&&i==ready){
+  if((!digitalRead(buttonPin))&&state==Ready){
     while((!digitalRead(buttonPin))){
         delay(10);
     }
     iis.recorderControl(BEGIN);                // Begin recording
-    i=recording;
+    state=Recording;
   }                         
   delay(100);
-  if((!digitalRead(buttonPin))&&i==recording){
+  if((!digitalRead(buttonPin))&&state==Recording){
     while((!digitalRead(buttonPin))){
         delay(10);
     }
-    iis.recorderControl(STOP);                 // Stop playing
-    i=stop;
+    iis.recorderControl(STOP);                 // Stop recording
+    state=Stop;
   }  
-  if((!digitalRead(buttonPin))&&i==stop){
+  if((!digitalRead(buttonPin))&&state==Stop){
     while((!digitalRead(buttonPin))){
         delay(10);
     }
-    iis.changeRecord("/sdcard/record2.WAV"); // Change file name
-    i=ready;
+    iis.record("/sdcard/record2.WAV");         // Change file name
+    state=Ready;
   }  
   delay(100);
 }

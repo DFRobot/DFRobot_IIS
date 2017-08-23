@@ -2,9 +2,9 @@
  * @file DFRobot_IIS.h
  * @brief DFRobot's IIS Player Module
  * @n IIS Module for how to begin to play a WAV file,how to excute orders pause,continue,stop and play the next 
- *    Insert sd card with 123.wav and 1234.wav.
+ *    Insert sd card with test1.wav and test2.wav.
  *    Call the function by pressing user key to control music player
- *    The Module would operate as follows when pressed: play 123.wav>>pause>>continue>>stop>>play 1234.wav 
+ *    The Module would operate as follows when pressed: play test1.wav>>pause>>continue>>stop>>play test2.wav 
  * 
  * @copyright	[DFRobot](http://www.dfrobot.com), 2017
  * @copyright	GNU Lesser General Public License
@@ -26,7 +26,8 @@ void setup() {
   iis.init(AUDIO);                             // Init Audio mode and SD card
   iis.setHeadphonesVolume(50);                 // Set Headphones Volume from 0 to 99
   iis.setSpeakersVolume(0);                    // Set Speakers   Volume from 0 to 99
-  iis.playMusic("/sdcard/123.WAV");            // Enter file name for play Music       
+  iis.initPlayer();                            // Init Music player
+  iis.playMusic("/sdcard/test1.WAV");          // Choose music file  
   delay(500);
 }
 
@@ -58,8 +59,8 @@ void loop() {
     while((!digitalRead(buttonPin))){
         delay(10);
     }
-    iis.changeMusic("/sdcard/1234.WAV");       // Change music file
-    iis.playerControl(PLAY);                   // Play 1234.wav
+    iis.playMusic("/sdcard/test2.WAV");        // Change music file
+    iis.playerControl(PLAY);                   // Play test2.wav
     i=1;
   }  
   delay(100);

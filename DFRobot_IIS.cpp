@@ -79,7 +79,6 @@ void DFRobot_IIS::setSpeakersVolume(uint8_t volume)
 	I2C_WriteWAU8822(52, Volume1);   
     I2C_WriteWAU8822(53, Volume1+256);   
 	i2c_driver_delete(I2C_MASTER_NUM);
-	printf("setSpeakersVolume \n");
 }
 
 void DFRobot_IIS::setHeadphonesVolume(uint8_t volume)
@@ -103,13 +102,11 @@ void DFRobot_IIS::setHeadphonesVolume(uint8_t volume)
 	I2C_WriteWAU8822(54, Volume2);   
     I2C_WriteWAU8822(55, Volume2+256);   
 	i2c_driver_delete(I2C_MASTER_NUM);
-	printf("setHeadphonesVolume \n");
 }
 
 void playWAV(void *arg)
 {
 while(1){
-	I2C_Master_Init();
 	I2C_Setup_WAU8822_play();	
 	while(mark==STOP){
 	  vTaskDelay(100);
@@ -188,7 +185,8 @@ while(1){
 	            I2C_WriteWAU8822(52, 0x040);   
                 I2C_WriteWAU8822(53, 0x040);
                 I2C_WriteWAU8822(54, 0x040);
-                I2C_WriteWAU8822(55, 0x040);  				
+                I2C_WriteWAU8822(55, 0x040);  
+                i2c_driver_delete(I2C_MASTER_NUM);				
 	            printf("pause \n");
 	            vTaskDelay(500);
 		        while(mark==PAUSE){
@@ -196,6 +194,7 @@ while(1){
 			    }
 				printf("continue \n");
 			    vTaskDelay(100);
+				I2C_Master_Init();
 			    I2C_WriteWAU8822(52, Volume1);   
                 I2C_WriteWAU8822(53, Volume1+256); 
 		        I2C_WriteWAU8822(54, Volume2);
@@ -223,9 +222,9 @@ while(1){
 }
 }
 
-void DFRobot_IIS::playMusic(const char *Filename){
-	filename=(char *)Filename;	
-	printf("ready to play: %s\n",filename);
+void DFRobot_IIS::initPlayer(){
+	filename=NULL;
+    mark==STOP;	
 	xTaskCreate(playWAV, "playWAV",2048, NULL, 5, NULL);
 }
 
@@ -234,7 +233,7 @@ void DFRobot_IIS::playerControl(uint8_t cmd)
 	mark=cmd;
 }
 
-void DFRobot_IIS::changeMusic(const char *Filename){	
+void DFRobot_IIS::playMusic(const char *Filename){	
     filename=(char *)Filename;
 	printf("ready to play: %s\n",filename);
 }
@@ -242,7 +241,6 @@ void DFRobot_IIS::changeMusic(const char *Filename){
 void recordSound(void *arg)
 {
 while(1){
-  I2C_Master_Init();
   I2C_Setup_WAU8822_record();
   HANDLE_WAV wav = (HANDLE_WAV)calloc(1, sizeof(struct WAV));
   
@@ -305,10 +303,10 @@ while(1){
 }
 }
 
-void DFRobot_IIS::record(const char *Filename)
+void DFRobot_IIS::initRecorder()
 {
-	outputFilename=(char *)Filename;
-	printf("ready to record %s\n",outputFilename);
+	outputFilename=NULL;
+	mark==STOP;
 	xTaskCreate(recordSound, "recordSound",2048, NULL, 5, NULL);
 }
 
@@ -317,7 +315,7 @@ void DFRobot_IIS::recorderControl(uint8_t cmd)
 	mark=cmd;
 }
 
-void DFRobot_IIS::changeRecord(const char *Filename)
+void DFRobot_IIS::record(const char *Filename)
 {
 	outputFilename=(char *)Filename;
 	printf("ready to record %s\n",outputFilename);

@@ -12,7 +12,11 @@ and save in SD card
 ### Enter the volume(from 0 to 99) to set volume when playMusic
 
     void setSpeakersVolume(uint8_t volume);	
-    void setHeadphonesVolume(uint8_t volume);	
+    void setHeadphonesVolume(uint8_t volume);
+
+### Init Music Player	
+
+    void initPlayer();	
    
 ### Enter the WAV file name in the SD card you want to play
     
@@ -22,10 +26,10 @@ and save in SD card
 
 	void playerControl(uint8_t cmd);
 	cmd:PLAY PAUSE STOP
+	
+### Init Recorder
 
-### Change WAV file for play 
-
-    void changeMusic(const char *Filename);
+    void initRecorder();
 
 ### Enter the WAV file name you want to store in the SD card 
 
@@ -35,10 +39,6 @@ and save in SD card
    
     void recorderControl(uint8_t cmd);
 	cmd:BEGIN STOP 
-
-### Change filename for save recording
-
-    void changeRecord(const char *Filename);
 
 ### Enter the BMP file name you want to store in the SD card
    

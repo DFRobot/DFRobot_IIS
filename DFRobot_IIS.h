@@ -51,7 +51,7 @@ extern "C" {
 #define I2C_MASTER_SDA_IO   GPIO_NUM_26
 #define I2C_MASTER_TX_BUF_DISABLE   0  
 #define I2C_MASTER_RX_BUF_DISABLE   0  
-#define I2C_MASTER_FREQ_HZ     500
+#define I2C_MASTER_FREQ_HZ     600
 
 #define AUDIO      0
 #define CAMERA     1
@@ -105,11 +105,11 @@ public:
   void setSpeakersVolume(uint8_t volume);
   void setHeadphonesVolume(uint8_t volume);
   void takephoto(const char *pictureFilename); 
+  void initPlayer();
+  void initRecorder();
   void playMusic(const char *Filename);
-  void changeMusic(const char *Filename);
-  void playerControl(uint8_t cmd);
-  void recorderControl(uint8_t cmd);
-  void changeRecord(const char *Filename);
   void record(const char *Filename);
+  void playerControl(uint8_t cmd);  
+  void recorderControl(uint8_t cmd);
 };
 #endif
