@@ -22,6 +22,9 @@ initPlayer	KEYWORD2
 initRecorder	KEYWORD2
 record	KEYWORD2
 takephoto	KEYWORD2
+SDcard_Init	KEYWORD2
+SDcard_Write	KEYWORD2
+SDcard_Read	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)

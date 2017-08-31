@@ -6,8 +6,8 @@
  *    Call the function by pressing user key to control recorder
  *    This Module will record sound and save it as record1.wav record2.wav by pressing user key
  *    
- * @copyright	[DFRobot](http://www.dfrobot.com), 2017
- * @copyright	GNU Lesser General Public License
+ * @copyright    [DFRobot](http://www.dfrobot.com), 2017
+ * @copyright    GNU Lesser General Public License
  *
  * @author [Zhangjiawei<jiawei.zhang@dfrobot.com>]
  * @version  V1.0

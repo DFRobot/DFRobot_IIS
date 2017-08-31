@@ -3,8 +3,8 @@
  * @brief DFRobot's IIS Module
  * @n IIS Module for playMusic、recordSound and takephoto
  *
- * @copyright	[DFRobot](http://www.dfrobot.com), 2017
- * @copyright	GNU Lesser General Public License
+ * @copyright    [DFRobot](http://www.dfrobot.com), 2017
+ * @copyright    GNU Lesser General Public License
  *
  * @author [Zhangjiawei<jiawei.zhang@dfrobot.com>]
  * @version  V1.0
@@ -85,16 +85,16 @@ struct WAV
   WAV_HEADER header;
   FILE *fp;
 };
+
 typedef struct WAV *HANDLE_WAV;
 
   void I2S_MCLK_Init(unsigned int SAMPLE_RATE);
   void I2S_Master_Init(uint32_t SAMPLE_RATE,i2s_bits_per_sample_t BITS_PER_SAMPLE);
-  void I2S_Slave_Init (uint32_t SAMPLE_RATE,i2s_bits_per_sample_t BITS_PER_SAMPLE);   
+  void I2S_Slave_Init(uint32_t SAMPLE_RATE,i2s_bits_per_sample_t BITS_PER_SAMPLE);   
   void I2C_Master_Init();
   void I2C_WriteWAU8822(int8_t addr ,  int16_t data);
   void I2C_Setup_WAU8822_play();
   void I2C_Setup_WAU8822_record();
-  bool SDcard_init(const char * mountpoint="/sdcard");
   unsigned int LittleEndian32(unsigned int v);
   unsigned short LittleEndian16(short v); 
 
@@ -102,6 +102,9 @@ class DFRobot_IIS
 {
 public:
   bool init(int mode);
+  bool SDcard_Init(const char* mountpoint="/sdcard");
+  void SDcard_Write(const char* SDfilename,const char*data);
+  void SDcard_Read(const char* SDfilename,size_t num);
   void setSpeakersVolume(uint8_t volume);
   void setHeadphonesVolume(uint8_t volume);
   void takephoto(const char *pictureFilename); 

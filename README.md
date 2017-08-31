@@ -43,8 +43,20 @@ and save in SD card
 ### Enter the BMP file name you want to store in the SD card
    
     void takephoto(const char *pictureFilename);   
+	
+### Init SD card
+    
+	bool SDcard_Init(void);
+	
+### Enter the file name in SD card and data to be written
+  
+    void SDcard_Write(const char* SDfilename,const char*data);
+	
+### Enter the file name in SD card and the number if data to be read
  
- * @file playWAV.ino record.ino camera.ino
+    void SDcard_Read(const char* SDfilename,size_t num);
+	
+ * @file playWAV.ino record.ino camera.ino SDcard.ino
  * @brief DFRobot's IIS Module
  * @n These three examples are used to play music record and takephoto 
  *
