@@ -143,7 +143,7 @@ esp_err_t camera_probe(const camera_config_t* config, camera_model_t* out_camera
     id->MIDH = SCCB_Read(slv_addr, REG_MIDH);
     vTaskDelay(10 / portTICK_PERIOD_MS);
     ESP_LOGE(TAG, "Camera PID=0x%02x VER=0x%02x MIDL=0x%02x MIDH=0x%02x",
-            id->PID, id->VER, id->MIDH, id->MIDL);
+        id->PID, id->VER, id->MIDH, id->MIDL);
 
     switch (id->PID) {
 #if CONFIG_OV2640_SUPPORT
@@ -155,7 +155,7 @@ esp_err_t camera_probe(const camera_config_t* config, camera_model_t* out_camera
 #if CONFIG_OV7725_SUPPORT
         case OV7725_PID:
             *out_camera_model = CAMERA_OV7725;
-			ESP_LOGE(TAG, "init 0v7725");
+            ESP_LOGE(TAG, "init 0v7725");
             ov7725_init(&s_state->sensor);
             break;
 #endif
@@ -310,8 +310,8 @@ esp_err_t camera_init(const camera_config_t* config)
     gpio_set_intr_type((gpio_num_t)s_state->config.pin_vsync, GPIO_INTR_NEGEDGE);
     gpio_intr_enable((gpio_num_t)s_state->config.pin_vsync);
     err = gpio_isr_register(&gpio_isr, (void*) TAG,
-            ESP_INTR_FLAG_INTRDISABLED | ESP_INTR_FLAG_IRAM,
-            &s_state->vsync_intr_handle);
+        ESP_INTR_FLAG_INTRDISABLED | ESP_INTR_FLAG_IRAM,
+        &s_state->vsync_intr_handle);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "gpio_isr_register failed (%x)", err);
         goto fail;
@@ -392,17 +392,16 @@ esp_err_t camera_run(const char *pictureFilename)
     ESP_LOGI(TAG, "Waiting for frame");
     xSemaphoreTake(s_state->frame_ready,portMAX_DELAY);
     get_bmp(pictureFilename);
-  /*  int r,g,b,j;
-   for(j=0;j<57600;j+=3)
-   {
-         r=s_state->fb[j];
-         g=s_state->fb[j+1];
-         b=s_state->fb[j+2];
-     if(j<90)
-     {
-   ESP_LOGI(TAG,"r=0x%2x , g=0x%2x , b=0x%2x",r,g,b);
-     } 
-   }*/
+  /*int r,g,b,j;
+    for(j=0;j<57600;j+=3)
+    {
+        r=s_state->fb[j];
+        g=s_state->fb[j+1];
+        b=s_state->fb[j+2];
+        if(j<90){
+            ESP_LOGI(TAG,"r=0x%2x , g=0x%2x , b=0x%2x",r,g,b);
+        }
+    }*/
     struct timeval tv_end;
     gettimeofday(&tv_end, NULL);
     int time_ms = (tv_end.tv_sec - tv_start.tv_sec) * 1000 + (tv_end.tv_usec - tv_start.tv_usec) / 1000;
@@ -413,65 +412,59 @@ esp_err_t camera_run(const char *pictureFilename)
 
 static void get_bmp(const char *pictureFilename)
 {
-   HANDLE_BMP bmp= (HANDLE_BMP)calloc(1,sizeof(struct BMP));
-   ESP_LOGD(TAG, "calloc bmp");
-   if (bmp == NULL) {
-      printf("BMP_OutputOpen(): Unable to allocate BMP struct.\n");
-      
-    }  
-   bmp->fp = fopen(pictureFilename, "wb");
-   ESP_LOGD(TAG, "open file");
-   bmp->header.BfType=19778;   
-   ESP_LOGD(TAG, "set BM");   
-   bmp->header.BfSize=54;	
-   bmp->header.BfReserved1=0;
-   bmp->header.BfReserved2=0;
-   bmp->header.BfOffBits=54;
-   bmp->header.BitsSize=40;
-   bmp->header.BiWidth=160;
-   bmp->header.BiHighth=120;
-   bmp->header.BiPlanes=1;
-   bmp->header.BitCount=16;
-   ESP_LOGD(TAG, "set data");
-   bmp->header.BiCompression=0;
-   bmp->header.BiSizeTmage=0;
-   bmp->header.Bixpels=2400;
-   bmp->header.Biypels=2400;
-   bmp->header.BiClrUsed=0;
-   bmp->header.BiClrImportant=0;
-   ESP_LOGD(TAG, "set head");
-   fwrite(&(bmp->header.BfType) , 1, 54 , bmp->fp);
-   ESP_LOGD(TAG, "write file");
-   int r,g,b,gry,j;
-  for(j=0;j<57600;j+=3)
-   {     
-         b=s_state->fb[j];
-         g=s_state->fb[j+1];
-         r=s_state->fb[j+2];
-         gry=(b+g+r)/3;
-     if(j<0)
-     {
-ESP_LOGI(TAG,"b=0x%2x , g=0x%2x , r=0x%2x",b,g,r);
-     }
-     fwrite(&b , 1, 1, bmp->fp);
-     fwrite(&g , 1, 1, bmp->fp);
-    // fwrite(&gry , 1, 1, bmp->fp);
-     bmp->header.BfSize+=2;
-     bmp->header.BiSizeTmage+=2;
-   }
-  fseek(bmp->fp,2,0);
-  ESP_LOGE(TAG, "Save data"); 
-  vTaskDelay(10 / portTICK_PERIOD_MS);
-  fwrite(&(bmp->header.BfSize) , 1, 52, bmp->fp);
-  fclose(bmp->fp);
-  ESP_LOGE(TAG, "DONE");
+    HANDLE_BMP bmp= (HANDLE_BMP)calloc(1,sizeof(struct BMP));
+    ESP_LOGD(TAG, "calloc bmp");
+    if (bmp == NULL)
+        printf("BMP_OutputOpen(): Unable to allocate BMP struct.\n");
+    bmp->fp = fopen(pictureFilename, "wb");
+    ESP_LOGD(TAG, "open file");
+    bmp->header.BfType=19778;
+    ESP_LOGD(TAG, "set BM");
+    bmp->header.BfSize=54;
+    bmp->header.BfReserved1=0;
+    bmp->header.BfReserved2=0;
+    bmp->header.BfOffBits=54;
+    bmp->header.BitsSize=40;
+    bmp->header.BiWidth=160;
+    bmp->header.BiHighth=120;
+    bmp->header.BiPlanes=1;
+    bmp->header.BitCount=16;
+    ESP_LOGD(TAG, "set data");
+    bmp->header.BiCompression=0;
+    bmp->header.BiSizeTmage=0;
+    bmp->header.Bixpels=2400;
+    bmp->header.Biypels=2400;
+    bmp->header.BiClrUsed=0;
+    bmp->header.BiClrImportant=0;
+    ESP_LOGD(TAG, "set head");
+    fwrite(&(bmp->header.BfType) , 1, 54 , bmp->fp);
+    ESP_LOGD(TAG, "write file");
+    int r,g,b,gry,j;
+    for(j=0;j<57600;j+=3){
+        b=s_state->fb[j];
+        g=s_state->fb[j+1];
+        r=s_state->fb[j+2];
+        gry=(b+g+r)/3;
+    if(j<0)
+        ESP_LOGI(TAG,"b=0x%2x , g=0x%2x , r=0x%2x",b,g,r);
+    fwrite(&b , 1, 1, bmp->fp);
+    fwrite(&g , 1, 1, bmp->fp);
+    bmp->header.BfSize+=2;
+    bmp->header.BiSizeTmage+=2;
+    }
+    fseek(bmp->fp,2,0);
+    ESP_LOGE(TAG, "Save data"); 
+    vTaskDelay(10 / portTICK_PERIOD_MS);
+    fwrite(&(bmp->header.BfSize) , 1, 52, bmp->fp);
+    fclose(bmp->fp);
+    ESP_LOGE(TAG, "DONE");
 }
 
 static esp_err_t dma_desc_init()
 {
     assert(s_state->width % 4 == 0);
     size_t line_size = s_state->width * s_state->in_bytes_per_pixel *
-            i2s_bytes_per_sample(s_state->sampling_mode);
+        i2s_bytes_per_sample(s_state->sampling_mode);
     ESP_LOGD(TAG, "Line width (for DMA): %d bytes", line_size);
     size_t dma_per_line = 1;
     size_t buf_size = line_size;
@@ -502,7 +495,6 @@ static esp_err_t dma_desc_init()
         }
         s_state->dma_buf[i] = buf;
         ESP_LOGV(TAG, "dma_buf[%d]=%p", i, buf);
-
         lldesc_t* pd = &s_state->dma_desc[i];
         pd->length = buf_size;
         if (s_state->sampling_mode == SM_0A0B_0B0C &&
@@ -538,12 +530,12 @@ static void dma_desc_deinit()
 static inline void i2s_conf_reset()
 {
     const uint32_t lc_conf_reset_flags = I2S_IN_RST_S | I2S_AHBM_RST_S
-            | I2S_AHBM_FIFO_RST_S;
+        | I2S_AHBM_FIFO_RST_S;
     I2S0.lc_conf.val |= lc_conf_reset_flags;
     I2S0.lc_conf.val &= ~lc_conf_reset_flags;
 
     const uint32_t conf_reset_flags = I2S_RX_RESET_M | I2S_RX_FIFO_RESET_M
-            | I2S_TX_RESET_M | I2S_TX_FIFO_RESET_M;
+        | I2S_TX_RESET_M | I2S_TX_FIFO_RESET_M;
     I2S0.conf.val |= conf_reset_flags;
     I2S0.conf.val &= ~conf_reset_flags;
     while (I2S0.state.rx_fifo_reset_back) {

@@ -29,11 +29,11 @@ void setup() {
 }
 
 void loop() {
-  if(!digitalRead(buttonPin)&&i==0){           //Press user key to take photo  
+  if(!digitalRead(buttonPin)&&i==0){           //Press user key to take photo
     while((!digitalRead(buttonPin))){
         delay(10);
     }
-  iis.takephoto("/sdcard/photo1.bmp");         //Take photo and save it as photo1.bmp in SD card
+  iis.takePhoto("/sdcard/photo1.bmp");         //Take photo and save it as photo1.bmp in SD card
   i=1;
   }
   delay(500);
@@ -41,7 +41,7 @@ void loop() {
     while((!digitalRead(buttonPin))){
         delay(10);
     }  
-  iis.takephoto("/sdcard/photo2.bmp");       
+  iis.takePhoto("/sdcard/photo2.bmp");       
   i=0;
   }
 }

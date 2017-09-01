@@ -61,6 +61,9 @@ extern "C" {
 #define PAUSE      2
 #define STOP       3
 
+#define SD_Write   4
+#define SD_Read    5
+
 typedef struct WAV_HEADER
 {
   char           riffType[4];
@@ -90,7 +93,7 @@ typedef struct WAV *HANDLE_WAV;
 
   void I2S_MCLK_Init(unsigned int SAMPLE_RATE);
   void I2S_Master_Init(uint32_t SAMPLE_RATE,i2s_bits_per_sample_t BITS_PER_SAMPLE);
-  void I2S_Slave_Init(uint32_t SAMPLE_RATE,i2s_bits_per_sample_t BITS_PER_SAMPLE);   
+  void I2S_Slave_Init(uint32_t SAMPLE_RATE,i2s_bits_per_sample_t BITS_PER_SAMPLE);
   void I2C_Master_Init();
   void I2C_WriteWAU8822(int8_t addr ,  int16_t data);
   void I2C_Setup_WAU8822_play();
@@ -101,18 +104,20 @@ typedef struct WAV *HANDLE_WAV;
 class DFRobot_IIS
 {
 public:
-  bool init(int mode);
-  bool SDcard_Init(const char* mountpoint="/sdcard");
-  void SDcard_Write(const char* SDfilename,const char*data);
-  void SDcard_Read(const char* SDfilename,size_t num);
+  bool init(uint8_t mode);
   void setSpeakersVolume(uint8_t volume);
   void setHeadphonesVolume(uint8_t volume);
-  void takephoto(const char *pictureFilename); 
+  void takePhoto(const char *pictureFilename); 
   void initPlayer();
   void initRecorder();
   void playMusic(const char *Filename);
   void record(const char *Filename);
   void playerControl(uint8_t cmd);  
   void recorderControl(uint8_t cmd);
+  bool SDcard_Init(const char* mountpoint="/sdcard");
+  bool SDcard_Open(const char* Filename,uint8_t mode);
+  bool SDcard_Write(const char* data);
+  void SDcard_Read(void);
+  bool SDcard_Close(void);
 };
 #endif

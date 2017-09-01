@@ -23,8 +23,10 @@ initRecorder	KEYWORD2
 record	KEYWORD2
 takephoto	KEYWORD2
 SDcard_Init	KEYWORD2
+SDcard_Open	KEYWORD2
 SDcard_Write	KEYWORD2
 SDcard_Read	KEYWORD2
+SDcard_Close	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
@@ -35,3 +37,5 @@ PLAY	LITERAL1
 BEGIN	LITERAL1
 PAUSE	LITERAL1
 STOP	LITERAL1
+SD_Write	LITERAL1
+SD_Read	LITERAL1

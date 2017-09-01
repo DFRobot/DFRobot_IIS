@@ -18,10 +18,14 @@ DFRobot_IIS iis;
 
 void setup(){
   Serial.begin(115200);
-  iis.SDcard_Init();
-  iis.SDcard_Write("/sdcard/test.txt","Hello World!");
-  iis.SDcard_Read("/sdcard/test.txt",12);
-}
+  iis.SDcard_Init();                              //Init SD card
+  iis.SDcard_Open("/sdcard/test.txt",SD_Write);   //Open file in SD card
+  iis.SDcard_Write("Hello World!");               //Write data to file
+  iis.SDcard_Close();                             //Close and save data
+  iis.SDcard_Open("/sdcard/test.txt",SD_Read);
+  iis.SDcard_Read();                              //Read data from file
+  iis.SDcard_Close();
+  }
 
 void loop(){
   delay(100);
