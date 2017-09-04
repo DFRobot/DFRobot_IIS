@@ -28,8 +28,8 @@ char    *pictureFilename;
 char    *outputFilename;
 char    *SDfilename;
 uint8_t  mark=3;
-uint8_t  Volume1=57;
-uint8_t  Volume2=57;
+uint8_t  Volume1=0;
+uint8_t  Volume2=0;
 FILE    *sd_file;
 
 bool DFRobot_IIS::init(uint8_t mode)
@@ -62,8 +62,8 @@ void DFRobot_IIS::setSpeakersVolume(uint8_t volume)
     if(volume==0){
     I2C_Master_Init();
     I2C_WriteWAU8822(0,  0x000);
-    I2C_WriteWAU8822(52, 0x040);
-    I2C_WriteWAU8822(53, 0x040);
+    I2C_WriteWAU8822(54, 0x040);
+    I2C_WriteWAU8822(55, 0x040);
     i2c_driver_delete(I2C_MASTER_NUM);
     return ;
     }
@@ -73,8 +73,8 @@ void DFRobot_IIS::setSpeakersVolume(uint8_t volume)
     Volume1=(volume*64/100);
     I2C_Master_Init();
     I2C_WriteWAU8822(0,  0x000);
-    I2C_WriteWAU8822(52, Volume1);
-    I2C_WriteWAU8822(53, Volume1+256);
+    I2C_WriteWAU8822(54, Volume1);
+    I2C_WriteWAU8822(55, Volume1+256);
     i2c_driver_delete(I2C_MASTER_NUM);
 }
 
@@ -82,8 +82,8 @@ void DFRobot_IIS::setHeadphonesVolume(uint8_t volume){
     if(volume==0){
     I2C_Master_Init();
     I2C_WriteWAU8822(0,  0x000);
-    I2C_WriteWAU8822(54, 0x040);
-    I2C_WriteWAU8822(55, 0x040);
+    I2C_WriteWAU8822(52, 0x040);
+    I2C_WriteWAU8822(53, 0x040);
     i2c_driver_delete(I2C_MASTER_NUM);
     return ;
     }
@@ -91,10 +91,11 @@ void DFRobot_IIS::setHeadphonesVolume(uint8_t volume){
         volume-=100;
     }
     Volume2=(volume*64/100);
+	printf("V2=%d",Volume2);
     I2C_Master_Init();
     I2C_WriteWAU8822(0,  0x000);
-    I2C_WriteWAU8822(54, Volume2);
-    I2C_WriteWAU8822(55, Volume2+256);
+    I2C_WriteWAU8822(52, Volume2);
+    I2C_WriteWAU8822(53, Volume2+256);
     i2c_driver_delete(I2C_MASTER_NUM);
 }
 
@@ -163,7 +164,6 @@ while(1){
             }
         }
     }
-    I2C_Master_Init();
     I2S_MCLK_Init(wav->header.sampleRate);
     I2S_Master_Init(wav->header.sampleRate ,wav->header.bitsPerSample);
     i2s_set_sample_rates(I2S_NUM_0, wav->header.sampleRate);
@@ -189,10 +189,11 @@ while(1){
                 printf("continue \n");
                 vTaskDelay(100);
                 I2C_Master_Init();
-                I2C_WriteWAU8822(52, Volume1);
-                I2C_WriteWAU8822(53, Volume1+256);
-                I2C_WriteWAU8822(54, Volume2);
-                I2C_WriteWAU8822(55, Volume2+256);
+				printf("V2=%d",Volume2);
+                I2C_WriteWAU8822(52, Volume2);
+                I2C_WriteWAU8822(53, Volume2+256);
+                I2C_WriteWAU8822(54, Volume1);
+                I2C_WriteWAU8822(55, Volume1+256);
                 i2c_driver_delete(I2C_MASTER_NUM);
             }
         }
@@ -237,7 +238,6 @@ void recordSound(void *arg)
 while(1){
   I2C_Setup_WAU8822_record();
   HANDLE_WAV wav = (HANDLE_WAV)calloc(1, sizeof(struct WAV));
-  
   while(mark==STOP){
       vTaskDelay(100);
     }    
@@ -350,7 +350,6 @@ void I2C_WriteWAU8822(int8_t addr, int16_t data)
 void I2C_Setup_WAU8822_play()
 {
     I2C_Master_Init();
-    I2C_WriteWAU8822(0,  0x000);
     vTaskDelay(10);
     I2C_WriteWAU8822(1,  0x1FF);
     I2C_WriteWAU8822(2,  0x1BF);
@@ -369,7 +368,21 @@ void I2C_Setup_WAU8822_play()
     I2C_WriteWAU8822(48, 0x175);
     I2C_WriteWAU8822(50, 0x001);
     I2C_WriteWAU8822(51, 0x001);
-    i2c_driver_delete(I2C_MASTER_NUM);
+    if(Volume2){
+    I2C_WriteWAU8822(52, Volume2);
+    I2C_WriteWAU8822(53, Volume2+256);
+    }else{
+    I2C_WriteWAU8822(52, 0x040);
+    I2C_WriteWAU8822(53, 0x040);
+    }
+    if(Volume1){
+    I2C_WriteWAU8822(54, Volume1);
+    I2C_WriteWAU8822(55, Volume1+256);
+    }else{
+    I2C_WriteWAU8822(54, 0x040);
+    I2C_WriteWAU8822(55, 0x040);	
+    }
+	i2c_driver_delete(I2C_MASTER_NUM);
 }
 
 void I2C_Setup_WAU8822_record()
