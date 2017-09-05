@@ -57,27 +57,6 @@ The library is used to Play music file from SD card,Record sound and save in SD 
 
     void takePhoto(const char *pictureFilename);
 
-### Init SD card
-
-    bool SDcard_Init(void);
-
-### Open file in SD card in wirte mode or read mode
-
-    bool SDcard_Open(const char* SDfilename,uint8_t mode)
-    mode:SD_Write SD_Read
-
-### Write data to file in SD card
-
-    bool SDcard_Write(const char* data);
-
-### Read data from SD card
-
-    void SDcard_Read();
-
-### Save data and close file
-
-    bool SDcard_Close();
-
 ## History
 
 - data 2017-8-1
