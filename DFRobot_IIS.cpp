@@ -22,6 +22,7 @@
 #include "esp_err.h"
 #include "esp_log.h"
 #include "camera.h"
+#include "SD_MMC.h"
 
 char    *filename;
 char    *pictureFilename;
@@ -34,13 +35,14 @@ FILE    *sd_file;
 
 bool DFRobot_IIS::init(uint8_t mode)
 {
+    
     int ret=SDcard_Init();
     if(ret==0){
         printf("SDcard ERROR! \n");
         return false;
     }
     if(mode==AUDIO){
-    mark=3;
+    mark=STOP;
     return true;
     }else if(mode==CAMERA){
     I2C_Master_Init();
@@ -57,45 +59,51 @@ bool DFRobot_IIS::init(uint8_t mode)
     return false;
     }
 }
+
 void DFRobot_IIS::setSpeakersVolume(uint8_t volume)
-{   
-    if(volume==0){
-    I2C_Master_Init();
-    I2C_WriteWAU8822(0,  0x000);
-    I2C_WriteWAU8822(54, 0x040);
-    I2C_WriteWAU8822(55, 0x040);
-    i2c_driver_delete(I2C_MASTER_NUM);
-    return ;
-    }
-    while(volume>100){
-        volume-=100;
-    }
+{
+    mark=SET;
+    if(volume>99)
+    Volume2=99;	
+    if(volume<1)
+    Volume2=0;
     Volume1=(volume*64/100);
     I2C_Master_Init();
-    I2C_WriteWAU8822(0,  0x000);
     I2C_WriteWAU8822(54, Volume1);
     I2C_WriteWAU8822(55, Volume1+256);
     i2c_driver_delete(I2C_MASTER_NUM);
+    mark=PLAY;
 }
 
-void DFRobot_IIS::setHeadphonesVolume(uint8_t volume){
-    if(volume==0){
+void DFRobot_IIS::muteSpeakers(void)
+{
+    mark=SET;
     I2C_Master_Init();
-    I2C_WriteWAU8822(0,  0x000);
-    I2C_WriteWAU8822(52, 0x040);
-    I2C_WriteWAU8822(53, 0x040);
+    I2C_WriteWAU8822(54, 0x040);
+    I2C_WriteWAU8822(55, 0x040);
     i2c_driver_delete(I2C_MASTER_NUM);
-    return ;
-    }
-    while(volume>100){
-        volume-=100;
-    }
+    mark=PLAY;
+}
+void DFRobot_IIS::setHeadphonesVolume(uint8_t volume)
+{
+    mark=SET;
+    if(volume>99)
+    Volume2=99;	
+    if(volume<1)
+    Volume2=0;
     Volume2=(volume*64/100);
-	printf("V2=%d",Volume2);
     I2C_Master_Init();
-    I2C_WriteWAU8822(0,  0x000);
     I2C_WriteWAU8822(52, Volume2);
     I2C_WriteWAU8822(53, Volume2+256);
+    i2c_driver_delete(I2C_MASTER_NUM);
+    mark=PLAY;
+}
+
+void DFRobot_IIS::muteHeadhpones(void)
+{
+    I2C_Master_Init();
+    I2C_WriteWAU8822(52, 0x040);
+    I2C_WriteWAU8822(53, 0x040);
     i2c_driver_delete(I2C_MASTER_NUM);
 }
 
@@ -106,7 +114,6 @@ while(1){
     while(mark==STOP){
         vTaskDelay(100);
     }
-    printf("playWAV: %s\n",filename);
     HANDLE_WAV wav = (HANDLE_WAV)calloc(1, sizeof(struct WAV));
     if (wav == NULL) {
         printf("playWAV(): Unable to allocate WAV struct.\n");
@@ -181,20 +188,20 @@ while(1){
                 I2C_WriteWAU8822(54, 0x040);
                 I2C_WriteWAU8822(55, 0x040);
                 i2c_driver_delete(I2C_MASTER_NUM);
-                printf("pause \n");
                 vTaskDelay(500);
                 while(mark==PAUSE){
                 vTaskDelay(100);
                 }
-                printf("continue \n");
                 vTaskDelay(100);
                 I2C_Master_Init();
-				printf("V2=%d",Volume2);
                 I2C_WriteWAU8822(52, Volume2);
                 I2C_WriteWAU8822(53, Volume2+256);
                 I2C_WriteWAU8822(54, Volume1);
                 I2C_WriteWAU8822(55, Volume1+256);
                 i2c_driver_delete(I2C_MASTER_NUM);
+            }
+            while(mark==SET){
+                vTaskDelay(10);
             }
         }
         if(mark==STOP){
@@ -204,7 +211,6 @@ while(1){
         I2C_WriteWAU8822(54, 0x040);
         I2C_WriteWAU8822(55, 0x040);
         i2c_driver_delete(I2C_MASTER_NUM);
-        printf("stop \n");
         break;
         }
     }
@@ -212,14 +218,13 @@ while(1){
     i2s_driver_uninstall(I2S_NUM_0);
     fclose(wav->fp);
     free(wav);
-    printf("play over \n");
     mark=STOP;
 }
 }
 
 void DFRobot_IIS::initPlayer(){
     filename=NULL;
-    mark==STOP;
+    mark=STOP;
     xTaskCreate(playWAV, "playWAV",2048, NULL, 5, NULL);
 }
 
@@ -230,7 +235,6 @@ void DFRobot_IIS::playerControl(uint8_t cmd)
 
 void DFRobot_IIS::playMusic(const char *Filename){
     filename=(char *)Filename;
-    printf("ready to play: %s\n",filename);
 }
 
 void recordSound(void *arg)
@@ -277,13 +281,11 @@ while(1){
   char *buf=(char *)&wav->header.test;
   I2S_MCLK_Init(32000);
   I2S_Slave_Init(32000,I2S_BITS_PER_SAMPLE_16BIT);
-  printf("recording  \n");
   vTaskDelay(1000);
   while(mark!=STOP) {
     bytes_written = i2s_read_bytes(I2S_NUM_0 ,buf, 800 , 100);
     wav->header.dataSize+=fwrite(buf, 1, bytes_written , wav->fp);
   }  
-  printf("record done \n");
   wav->header.riffSize =wav->header.dataSize+44;
   fseek(wav->fp,4,0);
   fwrite(&wav->header.riffSize, 1,4, wav->fp);
@@ -292,7 +294,6 @@ while(1){
   fclose(wav->fp);
   i2s_stop(I2S_NUM_0);
   i2s_driver_uninstall(I2S_NUM_0);
-  printf("save record as %s\n",outputFilename);
   vTaskDelay(1000);
 }
 }
@@ -300,7 +301,7 @@ while(1){
 void DFRobot_IIS::initRecorder()
 {
     outputFilename=NULL;
-    mark==STOP;
+    mark=STOP;
     xTaskCreate(recordSound, "recordSound",2048, NULL, 5, NULL);
 }
 
@@ -312,13 +313,11 @@ void DFRobot_IIS::recorderControl(uint8_t cmd)
 void DFRobot_IIS::record(const char *Filename)
 {
     outputFilename=(char *)Filename;
-    printf("ready to record %s\n",outputFilename);
 }
 
 void DFRobot_IIS::takePhoto(const char *pictureFilename)
 {
     camera_run(pictureFilename);
-    printf("Take photo %s \n",pictureFilename);
 }
 
 void I2C_Master_Init()
@@ -380,9 +379,9 @@ void I2C_Setup_WAU8822_play()
     I2C_WriteWAU8822(55, Volume1+256);
     }else{
     I2C_WriteWAU8822(54, 0x040);
-    I2C_WriteWAU8822(55, 0x040);	
+    I2C_WriteWAU8822(55, 0x040);    
     }
-	i2c_driver_delete(I2C_MASTER_NUM);
+    i2c_driver_delete(I2C_MASTER_NUM);
 }
 
 void I2C_Setup_WAU8822_record()
@@ -485,6 +484,7 @@ void I2S_Slave_Init(uint32_t SAMPLE_RATE,i2s_bits_per_sample_t BITS_PER_SAMPLE)
 
 bool DFRobot_IIS::SDcard_Init(const char* mountpoint)
 {
+   /*
     sdmmc_card_t* _card;
     sdmmc_slot_config_t slot_config = SDMMC_SLOT_CONFIG_DEFAULT();
     sdmmc_host_t host = SDMMC_HOST_DEFAULT();
@@ -494,13 +494,13 @@ bool DFRobot_IIS::SDcard_Init(const char* mountpoint)
         .max_files = 5
     };
     esp_err_t ret = esp_vfs_fat_sdmmc_mount(mountpoint, &host, &slot_config, &mount_config, &_card);
-    if (ret != ESP_OK) {
-        if (ret == ESP_FAIL) {
+    if(ret != ESP_OK){
+        if(ret == ESP_FAIL){
             log_e("Failed to mount filesystem. If you want the card to be formatted, set format_if_mount_failed = true.");
-        } else if (ret == ESP_ERR_INVALID_STATE) {
+        }else if(ret == ESP_ERR_INVALID_STATE){
             log_w("SD Already mounted");
             return true;
-        } else {
+        }else{
             log_e("Failed to initialize the card , Please insert SD card and reset.");
         }
         _card = NULL;
@@ -508,58 +508,12 @@ bool DFRobot_IIS::SDcard_Init(const char* mountpoint)
     }
     printf("SD card init \n");
     return true;
-}
-
-bool DFRobot_IIS::SDcard_Open(const char* Filename,uint8_t mode)
-{
-    SDfilename=(char*)Filename;
-    if(mode==SD_Write){
-        sd_file=fopen(SDfilename,"w");
-        printf("Open:%s in write mode \n",SDfilename);
-        return true;
-    }else if(mode==SD_Read){
-        sd_file=fopen(SDfilename,"r");
-        printf("Open:%s in read mode \n",SDfilename);
-        return true;
-    }else{
-        printf("No such mode! \n");
+    */
+     if(!SD_MMC.begin()){
+        Serial.println("Card Mount Failed");
         return false;
     }
-    if(sd_file==NULL){
-    printf("Unable to open file:%s \n",SDfilename);
-    return false;
-    }
-}
-
-bool DFRobot_IIS::SDcard_Write(const char* data)
-{
-    if(fwrite(data,1,strlen(data),sd_file)==strlen(data)){
-        printf("Write done \n");
-        return true;
-    }else{
-        printf("Write error \n");
-        return false;
-    }    
-}
-
-void DFRobot_IIS::SDcard_Read(void)
-{
-    char line[50];
-    while(fread(line,1,50,sd_file)){
-        printf("%s",line);
-    }
-    printf("\n Read over \n");
-}
-
-bool DFRobot_IIS::SDcard_Close(void)
-{
-    if(fclose(sd_file)==0){
-        printf("File:%s closed \n",SDfilename);
-        return true;
-    }else{
-        printf("Close file:%s error \n",SDfilename);
-        return false;
-    }
+    return true;
 }
 
 unsigned int   LittleEndian32(unsigned int v){

@@ -1,18 +1,31 @@
-DFRobot_IIS Library for Arduino
----------------------------------------------------------
+# DFRobot_IIS Library for Arduino
+Provides an Arduino library for FireBeetle Covers-Camera&Audio Media Board 
+## Table of Contents
 
-The library is used to Play music file from SD card,Record sound and save in SD card,take photo
-and save in SD card 
+* [Summary](#summary)
+* [Methods](#methods)
+* [History](#history)
+* [Credits](#credits)
+<snippet>
+<content>
+
+## Summary
+
+The library is used to Play music file from SD card,Record sound and save in SD card,take photo and save in SD card
+
+## Methods
 
 ### Choose audio mode or camera mode
 
     void init(uint8_t mode);
     mode:AUDIO CAMERA
 
-### Enter the volume(from 0 to 99) to set volume when playMusic
+### Enter the volume(from 0 to 99) to set volume or choose mute mode when playMusic 
 
     void setSpeakersVolume(uint8_t volume);
     void setHeadphonesVolume(uint8_t volume);
+    void muteSpeakers(void);
+    void muteHeadphones(void);
 
 ### Init Music Player
 
@@ -65,17 +78,11 @@ and save in SD card
 
     bool SDcard_Close();
 
- * @file playWAV.ino record.ino camera.ino SDcard.ino
- * @brief DFRobot's IIS Module
- * @n These three examples are used to play music record and takephoto 
- *
- * @n [Get the module here](等上架后添加商品购买链接)
- * @n [Connection and Diagram](等上架后添加wiki链接)
- *
- * @copyright    [DFRobot](http://www.dfrobot.com), 2017
- * @copyright    GNU Lesser General Public License
- *
- * @author [Zhangjiawei<jiawei.zhang@dfrobot.com>]
- * @version  V1.0
- * @date  2017-8-1
- * @https://github.com/DFRobot/DFRobot_IIS
+## History
+
+- data 2017-8-1
+- version V1.0
+
+## Credits
+
+- author [Zhangjiawei<jiawei.zhang@dfrobot.com>]

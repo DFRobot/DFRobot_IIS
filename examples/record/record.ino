@@ -5,13 +5,6 @@
  *    Insert sd card 
  *    Call the function by pressing user key to control recorder
  *    This Module will record sound and save it as record1.wav record2.wav by pressing user key
- *    
- * @copyright    [DFRobot](http://www.dfrobot.com), 2017
- * @copyright    GNU Lesser General Public License
- *
- * @author [Zhangjiawei<jiawei.zhang@dfrobot.com>]
- * @version  V1.0
- * @date  2017-8-1
  */
  
 #include <Wire.h>
@@ -30,6 +23,7 @@ void setup() {
   iis.init(AUDIO);                             // Init Audio mode and SD card
   iis.initRecorder();                          // Init recorder 
   iis.record("/sdcard/record1.WAV");           // Enter file name to save recording
+  Serial.println("Ready to record");
 }
 
 void loop() {
@@ -38,6 +32,7 @@ void loop() {
         delay(10);
     }
     iis.recorderControl(BEGIN);                // Begin recording
+	Serial.println("Recording");
     state=Recording;
   }                         
   delay(100);
@@ -46,6 +41,7 @@ void loop() {
         delay(10);
     }
     iis.recorderControl(STOP);                 // Stop recording
+	Serial.println("Stop and save data");
     state=Stop;
   }  
   if((!digitalRead(buttonPin))&&state==Stop){

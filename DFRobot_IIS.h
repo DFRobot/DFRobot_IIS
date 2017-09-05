@@ -28,6 +28,7 @@
 #include "sdmmc_cmd.h"
 #include "vfs_api.h"
 #include "FS.h"
+
 extern "C" {
 #include "driver/i2c.h"
 #include "driver/i2s.h"
@@ -40,18 +41,18 @@ extern "C" {
 #include "sdmmc_cmd.h"
 }
 
-#define I2S_MCLK 22
-#define WRITE_BIT  I2C_MASTER_WRITE
-#define READ_BIT   I2C_MASTER_READ
-#define ESP_SLAVE_ADDR   (0X34) 
-#define ACK_CHECK_EN   0x1     
-#define ACK_CHECK_DIS  0x0     
-#define I2C_MASTER_NUM  I2C_NUM_1
-#define I2C_MASTER_SCL_IO   GPIO_NUM_27
-#define I2C_MASTER_SDA_IO   GPIO_NUM_26
+#define I2S_MCLK                    22
+#define WRITE_BIT                   I2C_MASTER_WRITE
+#define READ_BIT                    I2C_MASTER_READ
+#define ESP_SLAVE_ADDR              (0X34) 
+#define ACK_CHECK_EN                0x1     
+#define ACK_CHECK_DIS               0x0     
+#define I2C_MASTER_NUM              I2C_NUM_1
+#define I2C_MASTER_SCL_IO           GPIO_NUM_27
+#define I2C_MASTER_SDA_IO           GPIO_NUM_26
 #define I2C_MASTER_TX_BUF_DISABLE   0  
 #define I2C_MASTER_RX_BUF_DISABLE   0  
-#define I2C_MASTER_FREQ_HZ     600
+#define I2C_MASTER_FREQ_HZ          600
 
 #define AUDIO      0
 #define CAMERA     1
@@ -60,27 +61,25 @@ extern "C" {
 #define BEGIN      1
 #define PAUSE      2
 #define STOP       3
-
-#define SD_Write   4
-#define SD_Read    5
+#define SET        4
 
 typedef struct WAV_HEADER
 {
-  char           riffType[4];
-  unsigned int   riffSize;
-  char           waveType[4];
-  char           formatType[4];
-  unsigned int   formatSize;
-  uint16_t       compressionCode;
-  i2s_channel_t  numChannels;
-  uint32_t       sampleRate;
-  unsigned int   bytesPerSecond;
-  unsigned short blockAlign;
+  char                  riffType[4];
+  unsigned int          riffSize;
+  char                  waveType[4];
+  char                  formatType[4];
+  unsigned int          formatSize;
+  uint16_t              compressionCode;
+  i2s_channel_t         numChannels;
+  uint32_t              sampleRate;
+  unsigned int          bytesPerSecond;
+  unsigned short        blockAlign;
   i2s_bits_per_sample_t bitsPerSample;
-  char           dataType1[1];
-  char           dataType2[3];
-  unsigned int   dataSize;
-  char           test[800];
+  char                  dataType1[1];
+  char                  dataType2[3];
+  unsigned int          dataSize;
+  char                  test[800];
 }WAV_HEADER;
 
 struct WAV
@@ -106,7 +105,9 @@ class DFRobot_IIS
 public:
   bool init(uint8_t mode);
   void setSpeakersVolume(uint8_t volume);
+  void muteSpeakers(void);
   void setHeadphonesVolume(uint8_t volume);
+  void muteHeadphones(void);
   void takePhoto(const char *pictureFilename); 
   void initPlayer();
   void initRecorder();
@@ -115,9 +116,5 @@ public:
   void playerControl(uint8_t cmd);  
   void recorderControl(uint8_t cmd);
   bool SDcard_Init(const char* mountpoint="/sdcard");
-  bool SDcard_Open(const char* Filename,uint8_t mode);
-  bool SDcard_Write(const char* data);
-  void SDcard_Read(void);
-  bool SDcard_Close(void);
 };
 #endif

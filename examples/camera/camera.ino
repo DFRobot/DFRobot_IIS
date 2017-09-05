@@ -5,13 +5,6 @@
  *    Insert sd card
  *    Call the function by pressing user key to take photo
  *    This Module will take photo and save as photo1.bmp,photo2.bmp by pressing user key
- *     
- * @copyright	[DFRobot](http://www.dfrobot.com), 2017
- * @copyright	GNU Lesser General Public License
- *
- * @author [Zhangjiawei<jiawei.zhang@dfrobot.com>]
- * @version  V1.0
- * @date  2017-8-1
  */
 
 #include <Wire.h>
@@ -26,6 +19,7 @@ void setup() {
   pinMode(buttonPin, INPUT);
   iis.init(CAMERA);                            //Init Camera mode and SD card
   delay(100);
+  Serial.println("Ready to take photo");
 }
 
 void loop() {
@@ -34,6 +28,7 @@ void loop() {
         delay(10);
     }
   iis.takePhoto("/sdcard/photo1.bmp");         //Take photo and save it as photo1.bmp in SD card
+  Serial.println("take photo1");
   i=1;
   }
   delay(500);
@@ -41,7 +36,8 @@ void loop() {
     while((!digitalRead(buttonPin))){
         delay(10);
     }  
-  iis.takePhoto("/sdcard/photo2.bmp");       
+  iis.takePhoto("/sdcard/photo2.bmp");
+  Serial.println("take photo2");  
   i=0;
   }
 }

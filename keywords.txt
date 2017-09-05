@@ -15,6 +15,8 @@ DFRobot_IIS	KEYWORD1
 init	KEYWORD2
 setSpeakersVolume	KEYWORD2
 setHeadphonesVolume	KEYWORD2
+muteSpeakers	KEYWORD2
+muteHeadphones	KEYWORD2
 playMusic	KEYWORD2
 playerControl	KEYWORD2
 recorderControl	KEYWORD2
@@ -22,11 +24,6 @@ initPlayer	KEYWORD2
 initRecorder	KEYWORD2
 record	KEYWORD2
 takephoto	KEYWORD2
-SDcard_Init	KEYWORD2
-SDcard_Open	KEYWORD2
-SDcard_Write	KEYWORD2
-SDcard_Read	KEYWORD2
-SDcard_Close	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
@@ -37,5 +34,4 @@ PLAY	LITERAL1
 BEGIN	LITERAL1
 PAUSE	LITERAL1
 STOP	LITERAL1
-SD_Write	LITERAL1
-SD_Read	LITERAL1
+

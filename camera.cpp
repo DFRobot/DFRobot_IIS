@@ -102,7 +102,7 @@ static size_t i2s_bytes_per_sample(i2s_sampling_mode_t mode)
 esp_err_t camera_probe(const camera_config_t* config, camera_model_t* out_camera_model)
 {
     if (s_state != NULL) {
-		ESP_LOGE(TAG, "s_state != NULL");
+        //ESP_LOGE(TAG, "s_state != NULL");
         return ESP_ERR_INVALID_STATE;
     }
 
@@ -110,12 +110,12 @@ esp_err_t camera_probe(const camera_config_t* config, camera_model_t* out_camera
     if (!s_state) {
         return ESP_ERR_NO_MEM;
     }
-    ESP_LOGE(TAG, "Enabling XCLK output");
+    //ESP_LOGE(TAG, "Enabling XCLK output");
     camera_enable_out_clock(config);
-    ESP_LOGE(TAG, "Initializing SSCB");
+    //ESP_LOGE(TAG, "Initializing SSCB");
     SCCB_Init(config->pin_sscb_sda, config->pin_sscb_scl);
 
-    ESP_LOGE(TAG, "Resetting camera");
+    //ESP_LOGE(TAG, "Resetting camera");
     gpio_config_t conf = { 0 };
     conf.pin_bit_mask = 1LL << config->pin_reset;
     conf.mode = GPIO_MODE_OUTPUT;
@@ -126,7 +126,7 @@ esp_err_t camera_probe(const camera_config_t* config, camera_model_t* out_camera
     gpio_set_level((gpio_num_t)config->pin_reset, 1);
     vTaskDelay(10 / portTICK_PERIOD_MS);
 
-    ESP_LOGE(TAG, "Searching for camera address");
+    //ESP_LOGE(TAG, "Searching for camera address");
     /* Probe the sensor */
     vTaskDelay(10 / portTICK_PERIOD_MS);
     uint8_t slv_addr = SCCB_Probe();
@@ -135,15 +135,14 @@ esp_err_t camera_probe(const camera_config_t* config, camera_model_t* out_camera
         return ESP_ERR_CAMERA_NOT_DETECTED;
     }
     s_state->sensor.slv_addr = slv_addr;
-    ESP_LOGE(TAG, "Detected camera at address=0x%02x", slv_addr);
+    //ESP_LOGE(TAG, "Detected camera at address=0x%02x", slv_addr);
     sensor_id_t* id = &s_state->sensor.id;
     id->PID = SCCB_Read(slv_addr, REG_PID);
     id->VER = SCCB_Read(slv_addr, REG_VER);
     id->MIDL = SCCB_Read(slv_addr, REG_MIDL);
     id->MIDH = SCCB_Read(slv_addr, REG_MIDH);
     vTaskDelay(10 / portTICK_PERIOD_MS);
-    ESP_LOGE(TAG, "Camera PID=0x%02x VER=0x%02x MIDL=0x%02x MIDH=0x%02x",
-        id->PID, id->VER, id->MIDH, id->MIDL);
+    //ESP_LOGE(TAG, "Camera PID=0x%02x VER=0x%02x MIDL=0x%02x MIDH=0x%02x",id->PID, id->VER, id->MIDH, id->MIDL);
 
     switch (id->PID) {
 #if CONFIG_OV2640_SUPPORT
@@ -155,18 +154,18 @@ esp_err_t camera_probe(const camera_config_t* config, camera_model_t* out_camera
 #if CONFIG_OV7725_SUPPORT
         case OV7725_PID:
             *out_camera_model = CAMERA_OV7725;
-            ESP_LOGE(TAG, "init 0v7725");
+            //ESP_LOGE(TAG, "init 0v7725");
             ov7725_init(&s_state->sensor);
             break;
 #endif
         default:
             id->PID = 0;
             *out_camera_model = CAMERA_UNKNOWN;
-            ESP_LOGE(TAG, "Detected camera not supported.");
+            //ESP_LOGE(TAG, "Detected camera not supported.");
             return ESP_ERR_CAMERA_NOT_SUPPORTED;
     }
 
-    ESP_LOGE(TAG, "Doing SW reset of sensor");
+    //ESP_LOGE(TAG, "Doing SW reset of sensor");
     s_state->sensor.reset(&s_state->sensor);
    
     return ESP_OK;
@@ -190,7 +189,7 @@ esp_err_t camera_init(const camera_config_t* config)
 
     ESP_LOGD(TAG, "Setting frame size to %dx%d", s_state->width, s_state->height);
     if (s_state->sensor.set_framesize(&s_state->sensor, frame_size) != 0) {
-        ESP_LOGE(TAG, "Failed to set frame size");
+        //ESP_LOGE(TAG, "Failed to set frame size");
         err = ESP_ERR_CAMERA_FAILED_TO_SET_FRAME_SIZE;
         goto fail;
     }
@@ -208,7 +207,7 @@ esp_err_t camera_init(const camera_config_t* config)
 
     if (pix_format == PIXFORMAT_GRAYSCALE) {
         if (s_state->sensor.id.PID != OV7725_PID) {
-            ESP_LOGE(TAG, "Grayscale format is only supported for ov7225");
+            //ESP_LOGE(TAG, "Grayscale format is only supported for ov7225");
             err = ESP_ERR_NOT_SUPPORTED;
             goto fail;
         }
@@ -224,7 +223,7 @@ esp_err_t camera_init(const camera_config_t* config)
         s_state->fb_bytes_per_pixel = 1;       // frame buffer stores Y8
     } else if (pix_format == PIXFORMAT_RGB565) {
         if (s_state->sensor.id.PID != OV7725_PID) {
-            ESP_LOGE(TAG, "RGB565 format is only supported for ov7225");
+            //ESP_LOGE(TAG, "RGB565 format is only supported for ov7225");
             err = ESP_ERR_NOT_SUPPORTED;
             goto fail;
         }
@@ -242,7 +241,7 @@ esp_err_t camera_init(const camera_config_t* config)
         ESP_LOGI(TAG, "get rgb buf");
     } else if (pix_format == PIXFORMAT_JPEG) {
         if (s_state->sensor.id.PID != OV2640_PID) {
-            ESP_LOGE(TAG, "JPEG format is only supported for ov2640");
+            //ESP_LOGE(TAG, "JPEG format is only supported for ov2640");
             err = ESP_ERR_NOT_SUPPORTED;
             goto fail;
         }
@@ -267,7 +266,7 @@ esp_err_t camera_init(const camera_config_t* config)
         s_state->in_bytes_per_pixel = 2;
         s_state->fb_bytes_per_pixel = 2;
     } else {
-        ESP_LOGE(TAG, "Requested format is not supported");
+        //ESP_LOGE(TAG, "Requested format is not supported");
         err = ESP_ERR_NOT_SUPPORTED;
         goto fail;
     }
@@ -280,7 +279,7 @@ esp_err_t camera_init(const camera_config_t* config)
     ESP_LOGD(TAG, "Allocating frame buffer (%d bytes)", s_state->fb_size);
     s_state->fb = (uint8_t*) calloc(s_state->fb_size, 1);
     if (s_state->fb == NULL) {
-        ESP_LOGE(TAG, "Failed to allocate frame buffer");
+        //ESP_LOGE(TAG, "Failed to allocate frame buffer");
         err = ESP_ERR_NO_MEM;
         goto fail;
     }
@@ -289,19 +288,19 @@ esp_err_t camera_init(const camera_config_t* config)
     i2s_init();
     err = dma_desc_init();
     if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to initialize I2S and DMA");
+        //ESP_LOGE(TAG, "Failed to initialize I2S and DMA");
         goto fail;
     }
 
     s_state->data_ready = xQueueCreate(16, sizeof(size_t));
     s_state->frame_ready = xSemaphoreCreateBinary();
     if (s_state->data_ready == NULL || s_state->frame_ready == NULL) {
-        ESP_LOGE(TAG, "Failed to create semaphores");
+        //ESP_LOGE(TAG, "Failed to create semaphores");
         err = ESP_ERR_NO_MEM;
         goto fail;
     }
     if (!xTaskCreatePinnedToCore(&dma_filter_task, "dma_filter", 4096, NULL, 10, &s_state->dma_filter_task, 1)) {
-        ESP_LOGE(TAG, "Failed to create DMA filter task");
+        //ESP_LOGE(TAG, "Failed to create DMA filter task");
         err = ESP_ERR_NO_MEM;
         goto fail;
     }
@@ -313,7 +312,7 @@ esp_err_t camera_init(const camera_config_t* config)
         ESP_INTR_FLAG_INTRDISABLED | ESP_INTR_FLAG_IRAM,
         &s_state->vsync_intr_handle);
     if (err != ESP_OK) {
-        ESP_LOGE(TAG, "gpio_isr_register failed (%x)", err);
+        //ESP_LOGE(TAG, "gpio_isr_register failed (%x)", err);
         goto fail;
     }
 
@@ -417,9 +416,9 @@ static void get_bmp(const char *pictureFilename)
     if (bmp == NULL)
         printf("BMP_OutputOpen(): Unable to allocate BMP struct.\n");
     bmp->fp = fopen(pictureFilename, "wb");
-    ESP_LOGD(TAG, "open file");
+    //ESP_LOGD(TAG, "open file");
     bmp->header.BfType=19778;
-    ESP_LOGD(TAG, "set BM");
+    //ESP_LOGD(TAG, "set BM");
     bmp->header.BfSize=54;
     bmp->header.BfReserved1=0;
     bmp->header.BfReserved2=0;
@@ -429,16 +428,16 @@ static void get_bmp(const char *pictureFilename)
     bmp->header.BiHighth=120;
     bmp->header.BiPlanes=1;
     bmp->header.BitCount=16;
-    ESP_LOGD(TAG, "set data");
+    //ESP_LOGD(TAG, "set data");
     bmp->header.BiCompression=0;
     bmp->header.BiSizeTmage=0;
     bmp->header.Bixpels=2400;
     bmp->header.Biypels=2400;
     bmp->header.BiClrUsed=0;
     bmp->header.BiClrImportant=0;
-    ESP_LOGD(TAG, "set head");
+    //ESP_LOGD(TAG, "set head");
     fwrite(&(bmp->header.BfType) , 1, 54 , bmp->fp);
-    ESP_LOGD(TAG, "write file");
+    //ESP_LOGD(TAG, "write file");
     int r,g,b,gry,j;
     for(j=0;j<57600;j+=3){
         b=s_state->fb[j];
@@ -446,18 +445,18 @@ static void get_bmp(const char *pictureFilename)
         r=s_state->fb[j+2];
         gry=(b+g+r)/3;
     if(j<0)
-        ESP_LOGI(TAG,"b=0x%2x , g=0x%2x , r=0x%2x",b,g,r);
+        //ESP_LOGI(TAG,"b=0x%2x , g=0x%2x , r=0x%2x",b,g,r);
     fwrite(&b , 1, 1, bmp->fp);
     fwrite(&g , 1, 1, bmp->fp);
     bmp->header.BfSize+=2;
     bmp->header.BiSizeTmage+=2;
     }
     fseek(bmp->fp,2,0);
-    ESP_LOGE(TAG, "Save data"); 
+    //ESP_LOGE(TAG, "Save data"); 
     vTaskDelay(10 / portTICK_PERIOD_MS);
     fwrite(&(bmp->header.BfSize) , 1, 52, bmp->fp);
     fclose(bmp->fp);
-    ESP_LOGE(TAG, "DONE");
+    //ESP_LOGE(TAG, "DONE");
 }
 
 static esp_err_t dma_desc_init()
@@ -818,7 +817,7 @@ static inline void rgb565_to_888(uint8_t in1, uint8_t in2, uint8_t* dst)
 */
       
     dst[0]=((in2&0x1f)|(in1&0x01)<<7|(in2&0xC0)>>1);
-	dst[1]=in1>>1;   
+    dst[1]=in1>>1;   
     dst[2]=0;
  
 }
@@ -848,7 +847,7 @@ static void IRAM_ATTR dma_filter_rgb565(const dma_elem_t* src, lldesc_t* dma_des
 void cameramode()
 {
     camera_config_t camera_config;
-	    camera_config.pin_d0 = 17;
+        camera_config.pin_d0 = 17;
         camera_config.pin_d1 = 5;
         camera_config.pin_d2 = 18;
         camera_config.pin_d3 = 19;
@@ -864,32 +863,32 @@ void cameramode()
         camera_config.pin_sscb_scl = 27;
         camera_config.pin_reset = 0;
         camera_config .xclk_freq_hz = 20000000;//5000000;
-		camera_config.ledc_timer = LEDC_TIMER_0;
-		camera_config.ledc_channel = LEDC_CHANNEL_0;
+        camera_config.ledc_timer = LEDC_TIMER_0;
+        camera_config.ledc_channel = LEDC_CHANNEL_0;
         camera_model_t camera_model;
       esp_err_t err = camera_probe(&camera_config, &camera_model);
     if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Camera probe failed with error 0x%x", err);
+        //ESP_LOGE(TAG, "Camera probe failed with error 0x%x", err);
         return;
     }
     if (camera_model == CAMERA_OV7725) {
-        ESP_LOGE(TAG, "Detected OV7725 camera, using rgb555 bitmap format");
+        //ESP_LOGE(TAG, "Detected OV7725 camera, using rgb555 bitmap format");
         s_pixel_format = CAMERA_PF_RGB565;
         camera_config.frame_size = CAMERA_FRAME_SIZE;
     } else if (camera_model == CAMERA_OV2640) {
-        ESP_LOGE(TAG, "Detected OV2640 camera, using JPEG format");
+        //ESP_LOGE(TAG, "Detected OV2640 camera, using JPEG format");
         s_pixel_format = CAMERA_PF_JPEG;
         camera_config.frame_size = CAMERA_FS_VGA;
         camera_config.jpeg_quality = 15;
     } else {
-        ESP_LOGE(TAG, "Camera not supported");
+        //ESP_LOGE(TAG, "Camera not supported");
         return;
     }
     camera_config.pixel_format = s_pixel_format;
     err = camera_init(&camera_config);
     if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Camera init failed with error 0x%x", err);
+        //ESP_LOGE(TAG, "Camera init failed with error 0x%x", err);
         return;
     }
-	ESP_LOGE(TAG,"Camera Ready");
+    //ESP_LOGE(TAG,"Camera Ready");
 }
