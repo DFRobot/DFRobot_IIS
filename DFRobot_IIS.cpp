@@ -84,6 +84,7 @@ void DFRobot_IIS::muteSpeakers(void)
     i2c_driver_delete(I2C_MASTER_NUM);
     mark=PLAY;
 }
+
 void DFRobot_IIS::setHeadphonesVolume(uint8_t volume)
 {
     mark=SET;

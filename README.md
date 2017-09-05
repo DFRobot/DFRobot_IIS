@@ -15,47 +15,39 @@ The library is used to Play music file from SD card,Record sound and save in SD 
 
 ## Methods
 
-### Choose audio mode or camera mode
+```C++
 
-    void init(uint8_t mode);
-    mode:AUDIO CAMERA
+//Choose audio mode or camera mode,mode:AUDIO CAMERA
+void init(uint8_t mode);
+    
+//Enter the volume(from 0 to 99) to set volume or choose mute mode when play music 
+void setSpeakersVolume(uint8_t volume);
+void setHeadphonesVolume(uint8_t volume);
+void muteSpeakers(void);
+void muteHeadphones(void);
 
-### Enter the volume(from 0 to 99) to set volume or choose mute mode when playMusic 
+//Init music player
+void initPlayer();
 
-    void setSpeakersVolume(uint8_t volume);
-    void setHeadphonesVolume(uint8_t volume);
-    void muteSpeakers(void);
-    void muteHeadphones(void);
+//Enter the WAV file name in the SD card you want to play
+int playMusic(const char *filename);
 
-### Init Music Player
+//Control the music player,cmd:PLAY PAUSE STOP
+void playerControl(uint8_t cmd);
+    
+//Init Recorder
+void initRecorder();
 
-    void initPlayer();
+//Enter the WAV file name you want to store in the SD card 
+int recordSound(const char *outputFilename);
 
-### Enter the WAV file name in the SD card you want to play
+//Control the recorder,cmd:BEGIN STOP
+void recorderControl(uint8_t cmd);
+    
+//Enter the BMP file name you want to store in the SD card
+void takePhoto(const char *pictureFilename);
 
-    int playMusic(const char *filename);
-
-### Control the music player
-
-    void playerControl(uint8_t cmd);
-    cmd:PLAY PAUSE STOP
-
-### Init Recorder
-
-    void initRecorder();
-
-### Enter the WAV file name you want to store in the SD card 
-
-    int recordSound(const char *outputFilename);
-
-### Control the recorder
-
-    void recorderControl(uint8_t cmd);
-    cmd:BEGIN STOP
-
-### Enter the BMP file name you want to store in the SD card
-
-    void takePhoto(const char *pictureFilename);
+```
 
 ## History
 
