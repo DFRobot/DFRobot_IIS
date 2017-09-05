@@ -454,7 +454,7 @@ void I2S_Master_Init(uint32_t SAMPLE_RATE,i2s_bits_per_sample_t BITS_PER_SAMPLE)
         .bck_io_num   = 5,
         .ws_io_num    = 17,
         .data_out_num = 0,
-        .data_in_num  = 36
+        .data_in_num  = 39
     };
     i2s_driver_install(I2S_NUM_0, &i2s_config, 0, NULL);
     i2s_set_pin(I2S_NUM_0, &pin_config);
@@ -476,7 +476,7 @@ void I2S_Slave_Init(uint32_t SAMPLE_RATE,i2s_bits_per_sample_t BITS_PER_SAMPLE)
         .bck_io_num   = 5,
         .ws_io_num    = 17,
         .data_out_num = 0,
-        .data_in_num  = 36
+        .data_in_num  = 39
     };
     i2s_driver_install(I2S_NUM_0, &i2s_config, 0, NULL);
     i2s_set_pin(I2S_NUM_0, &pin_config);
