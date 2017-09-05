@@ -51,7 +51,7 @@ The library is used to Play music file from SD card,Record sound and save in SD 
 ### Control the recorder
 
     void recorderControl(uint8_t cmd);
-    cmd:BEGIN STOP 
+    cmd:BEGIN STOP
 
 ### Enter the BMP file name you want to store in the SD card
 

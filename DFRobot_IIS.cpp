@@ -99,7 +99,7 @@ void DFRobot_IIS::setHeadphonesVolume(uint8_t volume)
     mark=PLAY;
 }
 
-void DFRobot_IIS::muteHeadhpones(void)
+void DFRobot_IIS::muteHeadphones(void)
 {
     I2C_Master_Init();
     I2C_WriteWAU8822(52, 0x040);
