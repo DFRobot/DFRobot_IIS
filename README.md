@@ -56,4 +56,4 @@ void takePhoto(const char *pictureFilename);
 
 ## Credits
 
-- author [Zhangjiawei<jiawei.zhang@dfrobot.com>]
+- author [Zhangjiawei  <jiawei.zhang@dfrobot.com>]
