@@ -13,10 +13,10 @@
 DFRobot_IIS iis;
 const int buttonPin = 16; 
 enum Status{
-    Ready,
-    Recording,
-    Stop
-}state=Ready;
+    ePrepare,
+    eRecording,
+    eStop
+}state=ePrepare;
 
 void setup(){
     Serial.begin(115200);
@@ -27,29 +27,29 @@ void setup(){
 }
 
 void loop(){
-    if((!digitalRead(buttonPin))&&state==Ready){
+    if((!digitalRead(buttonPin))&&state==ePrepare){
         while((!digitalRead(buttonPin))){
             delay(10);
         }
         iis.recorderControl(BEGIN);                // Begin recording
         Serial.println("Recording");
-        state=Recording;
+        state=eRecording;
     }
     delay(100);
-    if((!digitalRead(buttonPin))&&state==Recording){
+    if((!digitalRead(buttonPin))&&state==eRecording){
         while((!digitalRead(buttonPin))){
             delay(10);
         }
-        iis.recorderControl(STOP);                 // Stop recording
+        iis.recorderControl(STOP);                 // eStop recording
         Serial.println("Stop and save data");
-        state=Stop;
+        state=eStop;
     }  
-    if((!digitalRead(buttonPin))&&state==Stop){
+    if((!digitalRead(buttonPin))&&state==eStop){
         while((!digitalRead(buttonPin))){
             delay(10);
         }
         iis.record("/sdcard/record2.WAV");         // Change file name
-        state=Ready;
+        state=ePrepare;
     }
     delay(100);
 }
