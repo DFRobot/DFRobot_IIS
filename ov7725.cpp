@@ -298,7 +298,7 @@ int ov7725_init(sensor_t *sensor)
     sensor->id.MIDL = SCCB_Read(sensor->slv_addr, REG_MIDL);
     sensor->id.PID = SCCB_Read(sensor->slv_addr, REG_PID);
     sensor->id.VER = SCCB_Read(sensor->slv_addr, REG_VER);
-	
+
     SENSOR_HW_FLAGS_SET(sensor, SENSOR_HW_FLAGS_VSYNC, 1);
     SENSOR_HW_FLAGS_SET(sensor, SENSOR_HW_FLAGS_HSYNC, 0);
     SENSOR_HW_FLAGS_SET(sensor, SENSOR_HW_FLAGS_PIXCK, 1);

@@ -15,10 +15,10 @@ typedef enum {
 } camera_pixelformat_t;
 
 typedef enum {
-    CAMERA_FS_QQVGA = 4,     //!< 160x120
-    CAMERA_FS_QVGA = 8,      //!< 320x240
-    CAMERA_FS_VGA = 10,      //!< 640x480
-    CAMERA_FS_SVGA = 11,     //!< 800x600
+    CAMERA_FS_QQVGA = 4,        //!< 160x120
+    CAMERA_FS_QVGA = 8,         //!< 320x240
+    CAMERA_FS_VGA = 10,         //!< 640x480
+    CAMERA_FS_SVGA = 11,        //!< 800x600
 } camera_framesize_t;
 
 typedef enum {
@@ -29,24 +29,24 @@ typedef enum {
 } camera_model_t;
 
 typedef struct {
-    int pin_reset;          /*!< GPIO pin for camera reset line */
-    int pin_xclk;           /*!< GPIO pin for camera XCLK line */
-    int pin_sscb_sda;       /*!< GPIO pin for camera SDA line */
-    int pin_sscb_scl;       /*!< GPIO pin for camera SCL line */
-    int pin_d7;             /*!< GPIO pin for camera D7 line */
-    int pin_d6;             /*!< GPIO pin for camera D6 line */
-    int pin_d5;             /*!< GPIO pin for camera D5 line */
-    int pin_d4;             /*!< GPIO pin for camera D4 line */
-    int pin_d3;             /*!< GPIO pin for camera D3 line */
-    int pin_d2;             /*!< GPIO pin for camera D2 line */
-    int pin_d1;             /*!< GPIO pin for camera D1 line */
-    int pin_d0;             /*!< GPIO pin for camera D0 line */
-    int pin_vsync;          /*!< GPIO pin for camera VSYNC line */
-    int pin_href;           /*!< GPIO pin for camera HREF line */
-    int pin_pclk;           /*!< GPIO pin for camera PCLK line */
-    int xclk_freq_hz;       /*!< Frequency of XCLK signal, in Hz */
-    ledc_timer_t ledc_timer;        /*!< LEDC timer to be used for generating XCLK  */
-    ledc_channel_t ledc_channel;    /*!< LEDC channel to be used for generating XCLK  */
+    int pin_reset;              /*!< GPIO pin for camera reset line */
+    int pin_xclk;               /*!< GPIO pin for camera XCLK line */
+    int pin_sscb_sda;           /*!< GPIO pin for camera SDA line */
+    int pin_sscb_scl;           /*!< GPIO pin for camera SCL line */
+    int pin_d7;                 /*!< GPIO pin for camera D7 line */
+    int pin_d6;                 /*!< GPIO pin for camera D6 line */
+    int pin_d5;                 /*!< GPIO pin for camera D5 line */
+    int pin_d4;                 /*!< GPIO pin for camera D4 line */
+    int pin_d3;                 /*!< GPIO pin for camera D3 line */
+    int pin_d2;                 /*!< GPIO pin for camera D2 line */
+    int pin_d1;                 /*!< GPIO pin for camera D1 line */
+    int pin_d0;                 /*!< GPIO pin for camera D0 line */
+    int pin_vsync;              /*!< GPIO pin for camera VSYNC line */
+    int pin_href;               /*!< GPIO pin for camera HREF line */
+    int pin_pclk;               /*!< GPIO pin for camera PCLK line */
+    int xclk_freq_hz;           /*!< Frequency of XCLK signal, in Hz */
+    ledc_timer_t ledc_timer;    /*!< LEDC timer to be used for generating XCLK  */
+    ledc_channel_t ledc_channel;/*!< LEDC channel to be used for generating XCLK  */
     camera_pixelformat_t pixel_format;
     camera_framesize_t frame_size;
     int jpeg_quality;

@@ -14,30 +14,30 @@ DFRobot_IIS iis;
 const int buttonPin = 16;
 int i=0; 
 
-void setup() {
-  Serial.begin(115200);
-  pinMode(buttonPin, INPUT);
-  iis.init(CAMERA);                            //Init Camera mode and SD card
-  delay(100);
-  Serial.println("Ready to take photo");
+void setup(){
+    Serial.begin(115200);
+    pinMode(buttonPin, INPUT);
+    iis.init(CAMERA);                                //Init Camera mode and SD card
+    delay(100);
+    Serial.println("Ready to take photo");
 }
 
-void loop() {
-  if(!digitalRead(buttonPin)&&i==0){           //Press user key to take photo
-    while((!digitalRead(buttonPin))){
+void loop(){
+    if(!digitalRead(buttonPin)&&i==0){               //Press user key to take photo
+        while((!digitalRead(buttonPin))){
         delay(10);
+        }
+        iis.takePhoto("/sdcard/photo1.bmp");         //Take photo and save it as photo1.bmp in SD card
+        Serial.println("take photo1");
+        i=1;
     }
-  iis.takePhoto("/sdcard/photo1.bmp");         //Take photo and save it as photo1.bmp in SD card
-  Serial.println("take photo1");
-  i=1;
-  }
-  delay(500);
-  if(!digitalRead(buttonPin)&&i==1){   
-    while((!digitalRead(buttonPin))){
-        delay(10);
-    }  
-  iis.takePhoto("/sdcard/photo2.bmp");
-  Serial.println("take photo2");  
-  i=0;
-  }
+    delay(500);
+    if(!digitalRead(buttonPin)&&i==1){
+        while((!digitalRead(buttonPin))){
+            delay(10);
+        }
+        iis.takePhoto("/sdcard/photo2.bmp");
+        Serial.println("take photo2");  
+        i=0;
+    }
 }

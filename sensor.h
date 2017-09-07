@@ -8,7 +8,6 @@ extern "C" {
 #define OV2640_PID     (0x26)
 #define OV7725_PID     (0x77)
 
-
 typedef struct {
     uint8_t MIDH;
     uint8_t MIDL;
@@ -24,20 +23,20 @@ typedef enum {
 } pixformat_t;
 
 typedef enum {
-    FRAMESIZE_40x30,    // 40x30
-    FRAMESIZE_64x32,    // 64x32
-    FRAMESIZE_64x64,    // 64x64
-    FRAMESIZE_QQCIF,    // 88x72
-    FRAMESIZE_QQVGA,    // 160x120
-    FRAMESIZE_QQVGA2,   // 128x160
-    FRAMESIZE_QCIF,     // 176x144
-    FRAMESIZE_HQVGA,    // 220x160
-    FRAMESIZE_QVGA,     // 320x240
-    FRAMESIZE_CIF,      // 352x288
-    FRAMESIZE_VGA,      // 640x480
-    FRAMESIZE_SVGA,     // 800x600
-    FRAMESIZE_SXGA,     // 1280x1024
-    FRAMESIZE_UXGA,     // 1600x1200
+    FRAMESIZE_40x30,     // 40x30
+    FRAMESIZE_64x32,     // 64x32
+    FRAMESIZE_64x64,     // 64x64
+    FRAMESIZE_QQCIF,     // 88x72
+    FRAMESIZE_QQVGA,     // 160x120
+    FRAMESIZE_QQVGA2,    // 128x160
+    FRAMESIZE_QCIF,      // 176x144
+    FRAMESIZE_HQVGA,     // 220x160
+    FRAMESIZE_QVGA,      // 320x240
+    FRAMESIZE_CIF,       // 352x288
+    FRAMESIZE_VGA,       // 640x480
+    FRAMESIZE_SVGA,      // 800x600
+    FRAMESIZE_SXGA,      // 1280x1024
+    FRAMESIZE_UXGA,      // 1600x1200
 } framesize_t;
 
 typedef enum {

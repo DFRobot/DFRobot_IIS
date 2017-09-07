@@ -1,8 +1,6 @@
 #ifndef _SDCARD_H_
 #define _SDCARD_H_
 
-
-
 #include <stdio.h>
 #include <string.h>
 extern "C" {

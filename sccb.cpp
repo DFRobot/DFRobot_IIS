@@ -55,7 +55,6 @@ uint8_t SCCB_Write(uint8_t slv_addr, uint8_t reg, uint8_t data)
 {
     uint8_t ret=0;
     uint8_t buf[] = {reg, data};
-
     __disable_irq();
     if(twi_writeTo(0x21, buf, 2, true) != 0) {
         ret=0xFF;

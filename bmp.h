@@ -16,16 +16,16 @@
 
 typedef struct BMP_HEADER 
 {  
-uint16_t BfType;    
-unsigned int BfSize; 
-uint16_t BfReserved1; 
-uint16_t BfReserved2; 
+uint16_t BfType;
+unsigned int BfSize;
+uint16_t BfReserved1;
+uint16_t BfReserved2;
 unsigned int BfOffBits;
 unsigned int BitsSize;
 unsigned int BiWidth;
 unsigned int BiHighth;
 uint16_t BiPlanes;
-uint16_t BitCount; 
+uint16_t BitCount;
 unsigned int BiCompression;
 unsigned int BiSizeTmage;
 unsigned int Bixpels;
@@ -36,8 +36,8 @@ unsigned int BiClrImportant;
 
 struct BMP
 {
-  BMP_HEADER header;
-  FILE *fp;
+    BMP_HEADER header;
+    FILE *fp;
 };
 
 typedef struct BMP *HANDLE_BMP;

@@ -45,13 +45,13 @@ extern "C" {
 #define WRITE_BIT                   I2C_MASTER_WRITE
 #define READ_BIT                    I2C_MASTER_READ
 #define ESP_SLAVE_ADDR              (0X34) 
-#define ACK_CHECK_EN                0x1     
-#define ACK_CHECK_DIS               0x0     
+#define ACK_CHECK_EN                0x1
+#define ACK_CHECK_DIS               0x0
 #define I2C_MASTER_NUM              I2C_NUM_1
 #define I2C_MASTER_SCL_IO           GPIO_NUM_27
 #define I2C_MASTER_SDA_IO           GPIO_NUM_26
-#define I2C_MASTER_TX_BUF_DISABLE   0  
-#define I2C_MASTER_RX_BUF_DISABLE   0  
+#define I2C_MASTER_TX_BUF_DISABLE   0
+#define I2C_MASTER_RX_BUF_DISABLE   0
 #define I2C_MASTER_FREQ_HZ          600
 
 #define AUDIO      0
@@ -90,31 +90,31 @@ struct WAV
 
 typedef struct WAV *HANDLE_WAV;
 
-  void I2S_MCLK_Init(unsigned int SAMPLE_RATE);
-  void I2S_Master_Init(uint32_t SAMPLE_RATE,i2s_bits_per_sample_t BITS_PER_SAMPLE);
-  void I2S_Slave_Init(uint32_t SAMPLE_RATE,i2s_bits_per_sample_t BITS_PER_SAMPLE);
-  void I2C_Master_Init();
-  void I2C_WriteWAU8822(int8_t addr ,  int16_t data);
-  void I2C_Setup_WAU8822_play();
-  void I2C_Setup_WAU8822_record();
-  unsigned int LittleEndian32(unsigned int v);
-  unsigned short LittleEndian16(short v); 
+    void I2S_MCLK_Init(unsigned int SAMPLE_RATE);
+    void I2S_Master_Init(uint32_t SAMPLE_RATE,i2s_bits_per_sample_t BITS_PER_SAMPLE);
+    void I2S_Slave_Init(uint32_t SAMPLE_RATE,i2s_bits_per_sample_t BITS_PER_SAMPLE);
+    void I2C_Master_Init();
+    void I2C_WriteWAU8822(int8_t addr,int16_t data);
+    void I2C_Setup_WAU8822_play();
+    void I2C_Setup_WAU8822_record();
+    unsigned int LittleEndian32(unsigned int v);
+    unsigned short LittleEndian16(short v); 
 
 class DFRobot_IIS
 {
 public:
-  bool init(uint8_t mode);
-  void setSpeakersVolume(uint8_t volume);
-  void muteSpeakers(void);
-  void setHeadphonesVolume(uint8_t volume);
-  void muteHeadphones(void);
-  void takePhoto(const char *pictureFilename); 
-  void initPlayer();
-  void initRecorder();
-  void playMusic(const char *Filename);
-  void record(const char *Filename);
-  void playerControl(uint8_t cmd);  
-  void recorderControl(uint8_t cmd);
-  bool SDcard_Init(const char* mountpoint="/sdcard");
+    bool init(uint8_t mode);
+    void setSpeakersVolume(uint8_t volume);
+    void muteSpeakers(void);
+    void setHeadphonesVolume(uint8_t volume);
+    void muteHeadphones(void);
+    void takePhoto(const char *pictureFilename); 
+    void initPlayer();
+    void initRecorder();
+    void playMusic(const char *Filename);
+    void record(const char *Filename);
+    void playerControl(uint8_t cmd);  
+    void recorderControl(uint8_t cmd);
+    bool SDcard_Init(const char* mountpoint="/sdcard");
 };
 #endif

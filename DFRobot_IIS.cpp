@@ -64,7 +64,7 @@ void DFRobot_IIS::setSpeakersVolume(uint8_t volume)
 {
     mark=SET;
     if(volume>99)
-    Volume2=99;	
+    Volume2=99;    
     if(volume<1)
     Volume2=0;
     Volume1=(volume*64/100);
@@ -89,7 +89,7 @@ void DFRobot_IIS::setHeadphonesVolume(uint8_t volume)
 {
     mark=SET;
     if(volume>99)
-    Volume2=99;	
+    Volume2=99;    
     if(volume<1)
     Volume2=0;
     Volume2=(volume*64/100);
@@ -116,38 +116,38 @@ while(1){
         vTaskDelay(100);
     }
     HANDLE_WAV wav = (HANDLE_WAV)calloc(1, sizeof(struct WAV));
-    if (wav == NULL) {
+    if(wav == NULL){
         printf("playWAV(): Unable to allocate WAV struct.\n");
         return;
     }
     vTaskDelay(100);
     wav->fp = fopen(filename, "rb");
-    if (wav->fp == NULL) {
+    if(wav->fp == NULL){
         printf("playWAV(): Unable to open wav file. %s\n", filename);
         return;
     }
-    if (fread(&(wav->header.riffType), 1, 4, wav->fp) != 4) {
+    if(fread(&(wav->header.riffType), 1, 4, wav->fp) != 4){
         printf("playWAV(): couldn't read RIFF_ID\n");
         return;  /* bad error "couldn't read RIFF_ID" */
     }
-    if (strncmp("RIFF", wav->header.riffType, 4)) {
+    if(strncmp("RIFF", wav->header.riffType, 4)){
         printf("playWAV(): RIFF descriptor not found.\n") ;
         return;
     }
     fread(&(wav->header.riffSize), 4, 1, wav->fp);
-    if (fread(&wav->header.waveType, 1, 4, wav->fp) !=4) {
+    if(fread(&wav->header.waveType, 1, 4, wav->fp) !=4){
         printf("playWAV(): couldn't read format\n");
         return;  /* bad error "couldn't read format" */
     }
-    if (strncmp("WAVE", wav->header.waveType, 4)) {
+    if(strncmp("WAVE", wav->header.waveType, 4)){
         printf("playWAV(): WAVE chunk ID not found.\n") ;
         return;
     }
-    if (fread(&(wav->header.formatType), 1, 4, wav->fp) != 4) {
+    if(fread(&(wav->header.formatType), 1, 4, wav->fp) != 4){
         printf("playWAV(): couldn't read format_ID\n");
         return;  /* bad error "couldn't read format_ID" */
     }
-    if (strncmp("fmt", wav->header.formatType, 3)) {
+    if(strncmp("fmt", wav->header.formatType, 3)){
         printf("playWAV(): fmt chunk format not found.\n") ;
         return;
     }
@@ -159,14 +159,14 @@ while(1){
     fread(&(wav->header.blockAlign), 2, 1, wav->fp);
     fread(&(wav->header.bitsPerSample), 2, 1, wav->fp);
     while(1){
-        if (fread(&wav->header.dataType1, 1, 1, wav->fp) != 1) {
+        if(fread(&wav->header.dataType1, 1, 1, wav->fp) != 1){
         printf("playWAV(): Unable to read data chunk ID.\n");
         free(wav);
         break;
         }
-        if (strncmp("d", wav->header.dataType1, 1) == 0) {
+        if(strncmp("d", wav->header.dataType1, 1) == 0){
             fread(&wav->header.dataType2, 3, 1, wav->fp);
-            if (strncmp("ata", wav->header.dataType2, 3) == 0){
+            if(strncmp("ata", wav->header.dataType2, 3) == 0){
                 fread(&(wav->header.dataSize),4,1,wav->fp);
                 break;
             }
@@ -241,61 +241,61 @@ void DFRobot_IIS::playMusic(const char *Filename){
 void recordSound(void *arg)
 {
 while(1){
-  I2C_Setup_WAU8822_record();
-  HANDLE_WAV wav = (HANDLE_WAV)calloc(1, sizeof(struct WAV));
-  while(mark==STOP){
-      vTaskDelay(100);
-    }    
-  unsigned int size = 0;
-  if (wav == NULL) {
-    printf("recordSound(): Unable to allocate WAV struct.\n");
-    return ;
-  }  
-  wav->fp = fopen(outputFilename, "wb");
-  if (wav->fp == NULL){
-    printf("recordSound(): unable to create file %s\n", outputFilename);
-    return ;
-  }
-  strcpy(wav->header.riffType, "RIFF");
-  wav->header.riffSize = 0;  
-  strcpy(wav->header.waveType, "WAVE");
-  strcpy(wav->header.formatType, "fmt ");
-  wav->header.formatSize      = 0x00000010;
-  fwrite(&wav->header.riffType, 1, 20 , wav->fp);
-  wav->header.compressionCode = 1;
-  fwrite(&wav->header.compressionCode, 1 , 2 , wav->fp);
-  wav->header.numChannels     = I2S_CHANNEL_STEREO;
-  fwrite(&wav->header.numChannels, 1, 2, wav->fp);
-  wav->header.sampleRate      = 32000;
-  fwrite(&wav->header.sampleRate, 1, 4 , wav->fp);
-  wav->header.blockAlign      = (short)(I2S_CHANNEL_STEREO *(I2S_BITS_PER_SAMPLE_16BIT >> 3));
-  wav->header.bytesPerSecond  = (32000)*(wav->header.blockAlign);
-  fwrite(&wav->header.bytesPerSecond, 1, 4 , wav->fp);
-  fwrite(&wav->header.blockAlign, 1, 2 , wav->fp);
-  wav->header.bitsPerSample   = I2S_BITS_PER_SAMPLE_16BIT;
-  fwrite(&wav->header.bitsPerSample, 1, 2 , wav->fp);
-  strcpy(wav->header.dataType1, "d");
-  strcpy(wav->header.dataType2, "ata");
-  wav->header.dataSize        = 0;
-  fwrite(&wav->header.dataType1 ,1,8, wav->fp);
-  int bytes_written = 0;
-  char *buf=(char *)&wav->header.test;
-  I2S_MCLK_Init(32000);
-  I2S_Slave_Init(32000,I2S_BITS_PER_SAMPLE_16BIT);
-  vTaskDelay(1000);
-  while(mark!=STOP) {
+    I2C_Setup_WAU8822_record();
+    HANDLE_WAV wav = (HANDLE_WAV)calloc(1, sizeof(struct WAV));
+    while(mark==STOP){
+        vTaskDelay(100);
+    }
+    unsigned int size = 0;
+    if(wav == NULL){
+        printf("recordSound(): Unable to allocate WAV struct.\n");
+        return ;
+    }
+    wav->fp = fopen(outputFilename, "wb");
+    if(wav->fp == NULL){
+        printf("recordSound(): unable to create file %s\n", outputFilename);
+        return ;
+    }
+    strcpy(wav->header.riffType, "RIFF");
+    wav->header.riffSize = 0;  
+    strcpy(wav->header.waveType, "WAVE");
+    strcpy(wav->header.formatType, "fmt ");
+    wav->header.formatSize      = 0x00000010;
+    fwrite(&wav->header.riffType, 1, 20 , wav->fp);
+    wav->header.compressionCode = 1;
+    fwrite(&wav->header.compressionCode, 1 , 2 , wav->fp);
+    wav->header.numChannels     = I2S_CHANNEL_STEREO;
+    fwrite(&wav->header.numChannels, 1, 2, wav->fp);
+    wav->header.sampleRate      = 32000;
+    fwrite(&wav->header.sampleRate, 1, 4 , wav->fp);
+    wav->header.blockAlign      = (short)(I2S_CHANNEL_STEREO *(I2S_BITS_PER_SAMPLE_16BIT >> 3));
+    wav->header.bytesPerSecond  = (32000)*(wav->header.blockAlign);
+    fwrite(&wav->header.bytesPerSecond, 1, 4 , wav->fp);
+    fwrite(&wav->header.blockAlign, 1, 2 , wav->fp);
+    wav->header.bitsPerSample   = I2S_BITS_PER_SAMPLE_16BIT;
+    fwrite(&wav->header.bitsPerSample, 1, 2 , wav->fp);
+    strcpy(wav->header.dataType1, "d");
+    strcpy(wav->header.dataType2, "ata");
+    wav->header.dataSize        = 0;
+    fwrite(&wav->header.dataType1 ,1,8, wav->fp);
+    int bytes_written = 0;
+    char *buf=(char *)&wav->header.test;
+    I2S_MCLK_Init(32000);
+    I2S_Slave_Init(32000,I2S_BITS_PER_SAMPLE_16BIT);
+    vTaskDelay(1000);
+    while(mark!=STOP){
     bytes_written = i2s_read_bytes(I2S_NUM_0 ,buf, 800 , 100);
     wav->header.dataSize+=fwrite(buf, 1, bytes_written , wav->fp);
-  }  
-  wav->header.riffSize =wav->header.dataSize+44;
-  fseek(wav->fp,4,0);
-  fwrite(&wav->header.riffSize, 1,4, wav->fp);
-  fseek(wav->fp,40,0);
-  fwrite(&wav->header.dataSize, 1,4, wav->fp);
-  fclose(wav->fp);
-  i2s_stop(I2S_NUM_0);
-  i2s_driver_uninstall(I2S_NUM_0);
-  vTaskDelay(1000);
+    }
+    wav->header.riffSize =wav->header.dataSize+44;
+    fseek(wav->fp,4,0);
+    fwrite(&wav->header.riffSize, 1,4, wav->fp);
+    fseek(wav->fp,40,0);
+    fwrite(&wav->header.dataSize, 1,4, wav->fp);
+    fclose(wav->fp);
+    i2s_stop(I2S_NUM_0);
+    i2s_driver_uninstall(I2S_NUM_0);
+    vTaskDelay(1000);
 }
 }
 
@@ -485,31 +485,6 @@ void I2S_Slave_Init(uint32_t SAMPLE_RATE,i2s_bits_per_sample_t BITS_PER_SAMPLE)
 
 bool DFRobot_IIS::SDcard_Init(const char* mountpoint)
 {
-   /*
-    sdmmc_card_t* _card;
-    sdmmc_slot_config_t slot_config = SDMMC_SLOT_CONFIG_DEFAULT();
-    sdmmc_host_t host = SDMMC_HOST_DEFAULT();
-    host.max_freq_khz = SDMMC_FREQ_HIGHSPEED;
-    esp_vfs_fat_sdmmc_mount_config_t mount_config = {
-        .format_if_mount_failed = false,
-        .max_files = 5
-    };
-    esp_err_t ret = esp_vfs_fat_sdmmc_mount(mountpoint, &host, &slot_config, &mount_config, &_card);
-    if(ret != ESP_OK){
-        if(ret == ESP_FAIL){
-            log_e("Failed to mount filesystem. If you want the card to be formatted, set format_if_mount_failed = true.");
-        }else if(ret == ESP_ERR_INVALID_STATE){
-            log_w("SD Already mounted");
-            return true;
-        }else{
-            log_e("Failed to initialize the card , Please insert SD card and reset.");
-        }
-        _card = NULL;
-        return false;
-    }
-    printf("SD card init \n");
-    return true;
-    */
      if(!SD_MMC.begin()){
         Serial.println("Card Mount Failed");
         return false;

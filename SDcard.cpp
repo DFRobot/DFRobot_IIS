@@ -23,7 +23,7 @@ bool SDcard_init()
             printf("Failed to initialize the card , Please insert SD card and reset.");
         }
         return false;
-	}
-	return true;
+    }
+    return true;
 }
 

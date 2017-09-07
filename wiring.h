@@ -12,11 +12,8 @@ void Delay(int millis);
 #define INPUT 1
 #define INPUT_PULLUP 2
 
-
 #define systick_sleep(t) Delay(t)
 #define __disable_irq()
 #define __enable_irq()
-
-
 
 #endif 
