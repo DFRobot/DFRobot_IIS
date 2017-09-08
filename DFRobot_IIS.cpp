@@ -33,14 +33,16 @@ uint8_t  Volume1=0;
 uint8_t  Volume2=0;
 FILE    *sd_file;
 
-bool DFRobot_IIS::init(uint8_t mode)
-{
-    
-    int ret=SDcard_Init();
+bool DFRobot_IIS::sdCardInit(void)
+{   int ret=SDcard_Init();
     if(ret==0){
-        printf("SDcard ERROR! \n");
         return false;
     }
+    return true;
+}
+
+bool DFRobot_IIS::init(uint8_t mode)
+{
     if(mode==AUDIO){
     mark=STOP;
     return true;

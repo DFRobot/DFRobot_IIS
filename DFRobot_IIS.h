@@ -104,6 +104,7 @@ class DFRobot_IIS
 {
 public:
     bool init(uint8_t mode);
+    bool sdCardInit(void);
     void setSpeakersVolume(uint8_t volume);
     void muteSpeakers(void);
     void setHeadphonesVolume(uint8_t volume);

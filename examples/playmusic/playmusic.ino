@@ -16,7 +16,8 @@ int i=0;
 
 void setup(){
     Serial.begin(115200);
-    iis.init(AUDIO);                               // Init Audio mode and SD card
+    iis.sdCardInit();                              // SD card init
+    iis.init(AUDIO);                               // Init Audio mode
     iis.setHeadphonesVolume(50);                   // Set Headphones Volume from 0 to 99
     iis.setSpeakersVolume(50);                     // Set Speakers   Volume from 0 to 99
     iis.initPlayer();                              // Init Music player

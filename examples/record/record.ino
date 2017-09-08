@@ -20,7 +20,8 @@ enum Status{
 
 void setup(){
     Serial.begin(115200);
-    iis.init(AUDIO);                               // Init Audio mode and SD card
+    iis.sdCardInit();                              // SD card init
+    iis.init(AUDIO);                               // Init Audio mode
     iis.initRecorder();                            // Init recorder 
     iis.record("/sdcard/record1.WAV");             // Enter file name to save recording
     Serial.println("Ready to record");
