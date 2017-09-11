@@ -25,9 +25,9 @@
 #include "camera.h"
 #include "SD_MMC.h"
 
-char    filename[30];
-char    pictureFilename[30];
-char    outputFilename[30];
+char     filename[30];
+char     pictureFilename[30];
+char     outputFilename[30];
 uint8_t  mark=3;
 uint8_t  Volume1=0;
 uint8_t  Volume2=0;
