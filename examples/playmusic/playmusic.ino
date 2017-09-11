@@ -22,7 +22,7 @@ void setup(){
     iis.setSpeakersVolume(50);                     // Set Speakers   Volume from 0 to 99
     iis.initPlayer();                              // Init Music player
     Serial.println("Init player");
-    iis.playMusic("/sdcard/test1.WAV");            // Choose music file
+    iis.playMusic("/test1.WAV");                   // Choose music file
     Serial.println("Ready to play");
     delay(500);
 }
@@ -76,7 +76,7 @@ void loop(){
     while((!digitalRead(buttonPin))){
             delay(10);
         }
-        iis.playMusic("/sdcard/test2.WAV");        // Change music file
+        iis.playMusic("/test2.WAV");               // Change music file
         iis.playerControl(PLAY);                   // Play test2.wav
         i=1;
     }

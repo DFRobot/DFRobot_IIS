@@ -16,6 +16,7 @@
 #include <sys/unistd.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include "string.h"
 #include "driver/sdmmc_host.h"
 #include "driver/sdmmc_defs.h"
 #include "sdmmc_cmd.h"
@@ -24,14 +25,12 @@
 #include "camera.h"
 #include "SD_MMC.h"
 
-char    *filename;
-char    *pictureFilename;
-char    *outputFilename;
-char    *SDfilename;
+char    filename[30];
+char    pictureFilename[30];
+char    outputFilename[30];
 uint8_t  mark=3;
 uint8_t  Volume1=0;
 uint8_t  Volume2=0;
-FILE    *sd_file;
 
 bool DFRobot_IIS::sdCardInit(void)
 {   int ret=SDcard_Init();
@@ -65,10 +64,12 @@ bool DFRobot_IIS::init(uint8_t mode)
 void DFRobot_IIS::setSpeakersVolume(uint8_t volume)
 {
     mark=SET;
-    if(volume>99)
-    Volume2=99;    
-    if(volume<1)
+    if(volume>99){
+    Volume2=99;
+    }
+    if(volume<1){
     Volume2=0;
+    }
     Volume1=(volume*64/100);
     I2C_Master_Init();
     I2C_WriteWAU8822(54, Volume1);
@@ -81,8 +82,8 @@ void DFRobot_IIS::muteSpeakers(void)
 {
     mark=SET;
     I2C_Master_Init();
-    I2C_WriteWAU8822(54, 0x040);
-    I2C_WriteWAU8822(55, 0x040);
+    I2C_WriteWAU8822(54, 0x140);
+    I2C_WriteWAU8822(55, 0x140);
     i2c_driver_delete(I2C_MASTER_NUM);
     mark=PLAY;
 }
@@ -90,10 +91,12 @@ void DFRobot_IIS::muteSpeakers(void)
 void DFRobot_IIS::setHeadphonesVolume(uint8_t volume)
 {
     mark=SET;
-    if(volume>99)
-    Volume2=99;    
-    if(volume<1)
+    if(volume>99){
+    Volume2=99;
+    }
+    if(volume<1){
     Volume2=0;
+    }
     Volume2=(volume*64/100);
     I2C_Master_Init();
     I2C_WriteWAU8822(52, Volume2);
@@ -105,8 +108,8 @@ void DFRobot_IIS::setHeadphonesVolume(uint8_t volume)
 void DFRobot_IIS::muteHeadphones(void)
 {
     I2C_Master_Init();
-    I2C_WriteWAU8822(52, 0x040);
-    I2C_WriteWAU8822(53, 0x040);
+    I2C_WriteWAU8822(52, 0x140);
+    I2C_WriteWAU8822(53, 0x140);
     i2c_driver_delete(I2C_MASTER_NUM);
 }
 
@@ -226,7 +229,6 @@ while(1){
 }
 
 void DFRobot_IIS::initPlayer(){
-    filename=NULL;
     mark=STOP;
     xTaskCreate(playWAV, "playWAV",2048, NULL, 5, NULL);
 }
@@ -236,8 +238,11 @@ void DFRobot_IIS::playerControl(uint8_t cmd)
     mark=cmd;
 }
 
-void DFRobot_IIS::playMusic(const char *Filename){
-    filename=(char *)Filename;
+void DFRobot_IIS::playMusic(const char *Filename)
+{
+    char SDfilename[30]="/sdcard";
+    strcat(SDfilename,Filename);
+    strcpy(filename,SDfilename);
 }
 
 void recordSound(void *arg)
@@ -303,7 +308,6 @@ while(1){
 
 void DFRobot_IIS::initRecorder()
 {
-    outputFilename=NULL;
     mark=STOP;
     xTaskCreate(recordSound, "recordSound",2048, NULL, 5, NULL);
 }
@@ -315,11 +319,16 @@ void DFRobot_IIS::recorderControl(uint8_t cmd)
 
 void DFRobot_IIS::record(const char *Filename)
 {
-    outputFilename=(char *)Filename;
+    char SDfilename[30]="/sdcard";
+    strcat(SDfilename,Filename);
+    strcpy(outputFilename,SDfilename);
 }
 
-void DFRobot_IIS::takePhoto(const char *pictureFilename)
+void DFRobot_IIS::takePhoto(const char *Filename)
 {
+    char SDfilename[30]="/sdcard";
+    strcat(SDfilename,Filename);
+    strcpy(pictureFilename,SDfilename);
     camera_run(pictureFilename);
 }
 
@@ -352,6 +361,7 @@ void I2C_WriteWAU8822(int8_t addr, int16_t data)
 void I2C_Setup_WAU8822_play()
 {
     I2C_Master_Init();
+    I2C_WriteWAU8822(0,  0x000);
     vTaskDelay(10);
     I2C_WriteWAU8822(1,  0x1FF);
     I2C_WriteWAU8822(2,  0x1BF);
@@ -370,14 +380,14 @@ void I2C_Setup_WAU8822_play()
     I2C_WriteWAU8822(48, 0x175);
     I2C_WriteWAU8822(50, 0x001);
     I2C_WriteWAU8822(51, 0x001);
-    if(Volume2){
+    if(Volume2 != 0){
     I2C_WriteWAU8822(52, Volume2);
     I2C_WriteWAU8822(53, Volume2+256);
     }else{
     I2C_WriteWAU8822(52, 0x040);
     I2C_WriteWAU8822(53, 0x040);
     }
-    if(Volume1){
+    if(Volume1 != 0){
     I2C_WriteWAU8822(54, Volume1);
     I2C_WriteWAU8822(55, Volume1+256);
     }else{

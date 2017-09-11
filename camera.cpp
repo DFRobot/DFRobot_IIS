@@ -819,7 +819,7 @@ static inline void rgb565_to_888(uint8_t in1, uint8_t in2, uint8_t* dst)
     //delay(10);
 */
     dst[0]=((in2&0x1f)|(in1&0x01)<<7|(in2&0xC0)>>1);
-    dst[1]=in1>>1;   
+    dst[1]=in1>>1;
     dst[2]=0;
  
 }
