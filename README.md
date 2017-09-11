@@ -18,12 +18,11 @@ The library is used to Play music file from SD card,Record sound and save in SD 
 ```C++
 
 //Init SD card
-
 void sdCardInit(void);
 
 //Choose audio mode or camera mode,mode:AUDIO CAMERA
 void init(uint8_t mode);
-    
+
 //Enter the volume(from 0 to 99) to set volume or choose mute mode when play music 
 void setSpeakersVolume(uint8_t volume);
 void setHeadphonesVolume(uint8_t volume);
@@ -38,7 +37,7 @@ int playMusic(const char *filename);
 
 //Control the music player,cmd:PLAY PAUSE STOP
 void playerControl(uint8_t cmd);
-    
+
 //Init Recorder
 void initRecorder();
 
@@ -47,7 +46,7 @@ int recordSound(const char *outputFilename);
 
 //Control the recorder,cmd:BEGIN STOP
 void recorderControl(uint8_t cmd);
-    
+
 //Enter the BMP file name you want to store in the SD card
 void takePhoto(const char *pictureFilename);
 
