@@ -94,9 +94,9 @@ typedef struct WAV *HANDLE_WAV;
     void I2S_Master_Init(uint32_t SAMPLE_RATE,i2s_bits_per_sample_t BITS_PER_SAMPLE);
     void I2S_Slave_Init(uint32_t SAMPLE_RATE,i2s_bits_per_sample_t BITS_PER_SAMPLE);
     void I2C_Master_Init();
-    void I2C_WriteWAU8822(int8_t addr,int16_t data);
-    void I2C_Setup_WAU8822_play();
-    void I2C_Setup_WAU8822_record();
+    void I2C_WriteNAU8822(int8_t addr,int16_t data);
+    void I2C_Setup_NAU8822_play();
+    void I2C_Setup_NAU8822_record();
     unsigned int LittleEndian32(unsigned int v);
     unsigned short LittleEndian16(short v); 
 

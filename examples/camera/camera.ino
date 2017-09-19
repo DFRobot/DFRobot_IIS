@@ -28,7 +28,7 @@ void loop(){
         while((!digitalRead(buttonPin))){
         delay(10);
         }
-        iis.takePhoto("/photo1.bmp");               //Take photo and save it as photo1.bmp in SD card
+        iis.takePhoto("/photo1.bmp");                //Take photo and save it as photo1.bmp in SD card
         Serial.println("take photo1");
         i=1;
     }
