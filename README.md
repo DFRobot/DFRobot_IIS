@@ -17,37 +17,94 @@ The library is used to Play music file from SD card,Record sound and save in SD 
 
 ```C++
 
-//Init SD card
+/*
+ * @brief Init SD card
+ */
 void SDCardInit(void);
 
-//Choose audio mode or camera mode,mode:AUDIO CAMERA
+/*
+ * @brief Set operational mode 
+ *
+ * @param mode Work mode settings
+ *     AUDIO:Audio mode 
+ *     CAMERA:Camera mode
+ */
+
 void init(uint8_t mode);
 
-//Enter the volume(from 0 to 99) to set volume or choose mute mode when play music 
-void setSpeakersVolume(uint8_t volume);
+/*
+ * @brief Set speakers volume in when play music
+ *
+ * @param volume Set volume from 0 to 99
+ */
+
+ void setSpeakersVolume(uint8_t volume);
+
+/*
+ * @brief Set headphones volume in when play music
+ *
+ * @param volume Set volume from 0 to 99
+ */
 void setHeadphonesVolume(uint8_t volume);
+
+/*
+ * @brief Set speakers in mute mode
+ */
 void muteSpeakers(void);
+
+/*
+ * @brief Set headphones in mute mode
+ */
 void muteHeadphones(void);
 
-//Init music player
+/*
+ * @brief Init music player
+ */
 void initPlayer();
 
-//Enter the WAV file name in the SD card you want to play
+/*
+ * @brief Play music
+ *
+ * @param *filename The name of the file used to play
+ */
 int playMusic(const char *filename);
 
-//Control the music player,cmd:PLAY PAUSE STOP
+/*
+ * @brief Control the music player
+ *
+ * @param cmd Command to control music player
+ *     PLAY   Begin or continue play music
+ *     PAUSE  Pause play music
+ *     STOP   Stop play music
+ */
 void playerControl(uint8_t cmd);
 
-//Init Recorder
+/*
+ * @brief Init Recorder
+ */
 void initRecorder();
 
-//Enter the WAV file name you want to store in the SD card 
+/*
+ * @brief Record sound
+ *
+ * @param *outputFilename The name of the file to save record
+ */ 
 int recordSound(const char *outputFilename);
 
-//Control the recorder,cmd:BEGIN STOP
+/*
+ * @brief Control the recorder
+ *
+ * @param cmd Command to control recorder
+ *     BEGIN  Begin recording
+ *     STOP   Stop recording
+ */
 void recorderControl(uint8_t cmd);
 
-//Enter the BMP file name you want to store in the SD card
+/*
+ * @brief Take photo
+ *
+ * @param *pictureFilename The name of the file to save picture
+ */ 
 void takePhoto(const char *pictureFilename);
 
 ```

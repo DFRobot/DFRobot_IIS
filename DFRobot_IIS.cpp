@@ -498,7 +498,7 @@ void I2S_Slave_Init(uint32_t SAMPLE_RATE,i2s_bits_per_sample_t BITS_PER_SAMPLE)
 
 bool DFRobot_IIS::SDcard_Init(const char* mountpoint)
 {
-     if(!SD_MMC.begin()){
+    if(!SD_MMC.begin()){
         Serial.println("Card Mount Failed");
         return false;
     }
