@@ -1,9 +1,17 @@
+# FireBeetle Covers-Camera&Audio Media Board
+
+ESP32 Audio&Video Board with IIS 
+
+![SVG1](https://raw.githubusercontent.com/DFRobot/binaryfiles/master/DFR0498/DFR0498svg1.png)
+---------------------------------------------------------
+
 # DFRobot_IIS Library for Arduino
 Provides an Arduino library for FireBeetle Covers-Camera&Audio Media Board 
 ## Table of Contents
 
 * [Summary](#summary)
 * [Methods](#methods)
+* [Compatibility](#Compatibility)
 * [History](#history)
 * [Credits](#credits)
 <snippet>
@@ -106,6 +114,14 @@ void recorderControl(uint8_t cmd);
 void takePhoto(const char *pictureFilename);
 
 ```
+
+## Compatibility
+
+MCU                | Work Well | Work Wrong | Untested  | Remarks
+------------------ | :----------: | :----------: | :---------: | -----
+FireBeetle-ESP32  |      √       |             |            | 
+FireBeetle-ESP8266  |             |      √       |            | 
+FireBeetle-BLE4.1 |             |       √      |            | 
 
 ## History
 
