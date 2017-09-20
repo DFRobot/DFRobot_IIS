@@ -32,8 +32,9 @@ uint8_t  mark=3;
 uint8_t  Volume1=0;
 uint8_t  Volume2=0;
 
-bool DFRobot_IIS::sdCardInit(void)
-{   int ret=SDcard_Init();
+bool DFRobot_IIS::SDCardInit(void)
+{
+    int ret=SDcard_Init();
     if(ret==0){
         return false;
     }
@@ -43,21 +44,21 @@ bool DFRobot_IIS::sdCardInit(void)
 bool DFRobot_IIS::init(uint8_t mode)
 {
     if(mode==AUDIO){
-    mark=STOP;
-    return true;
+        mark=STOP;
+        return true;
     }else if(mode==CAMERA){
-    I2C_Master_Init();
-    I2C_WriteNAU8822(0,  0x000);
-    I2C_WriteNAU8822(52, 0x040);
-    I2C_WriteNAU8822(53, 0x040);
-    I2C_WriteNAU8822(54, 0x040);
-    I2C_WriteNAU8822(55, 0x040);
-    i2c_driver_delete(I2C_MASTER_NUM);
-    cameramode();
-    return true;
+        I2C_Master_Init();
+        I2C_WriteNAU8822(0,  0x000);
+        I2C_WriteNAU8822(52, 0x040);
+        I2C_WriteNAU8822(53, 0x040);
+        I2C_WriteNAU8822(54, 0x040);
+        I2C_WriteNAU8822(55, 0x040);
+        i2c_driver_delete(I2C_MASTER_NUM);
+        cameramode();
+        return true;
     }else{
-    printf("No such mode ");
-    return false;
+        printf("No such mode ");
+        return false;
     }
 }
 
@@ -65,10 +66,10 @@ void DFRobot_IIS::setSpeakersVolume(uint8_t volume)
 {
     mark=SET;
     if(volume>99){
-    Volume2=99;
+        Volume2=99;
     }
     if(volume<1){
-    Volume2=0;
+        Volume2=0;
     }
     Volume1=(volume*64/100);
     I2C_Master_Init();
@@ -92,10 +93,10 @@ void DFRobot_IIS::setHeadphonesVolume(uint8_t volume)
 {
     mark=SET;
     if(volume>99){
-    Volume2=99;
+        Volume2=99;
     }
     if(volume<1){
-    Volume2=0;
+        Volume2=0;
     }
     Volume2=(volume*64/100);
     I2C_Master_Init();
@@ -115,117 +116,117 @@ void DFRobot_IIS::muteHeadphones(void)
 
 void playWAV(void *arg)
 {
-while(1){
-    I2C_Setup_NAU8822_play();
-    while(mark==STOP){
-        vTaskDelay(100);
-    }
-    HANDLE_WAV wav = (HANDLE_WAV)calloc(1, sizeof(struct WAV));
-    if(wav == NULL){
-        printf("playWAV(): Unable to allocate WAV struct.\n");
-        return;
-    }
-    vTaskDelay(100);
-    wav->fp = fopen(filename, "rb");
-    if(wav->fp == NULL){
-        printf("playWAV(): Unable to open wav file. %s\n", filename);
-        return;
-    }
-    if(fread(&(wav->header.riffType), 1, 4, wav->fp) != 4){
-        printf("playWAV(): couldn't read RIFF_ID\n");
-        return;  /* bad error "couldn't read RIFF_ID" */
-    }
-    if(strncmp("RIFF", wav->header.riffType, 4)){
-        printf("playWAV(): RIFF descriptor not found.\n") ;
-        return;
-    }
-    fread(&(wav->header.riffSize), 4, 1, wav->fp);
-    if(fread(&wav->header.waveType, 1, 4, wav->fp) !=4){
-        printf("playWAV(): couldn't read format\n");
-        return;  /* bad error "couldn't read format" */
-    }
-    if(strncmp("WAVE", wav->header.waveType, 4)){
-        printf("playWAV(): WAVE chunk ID not found.\n") ;
-        return;
-    }
-    if(fread(&(wav->header.formatType), 1, 4, wav->fp) != 4){
-        printf("playWAV(): couldn't read format_ID\n");
-        return;  /* bad error "couldn't read format_ID" */
-    }
-    if(strncmp("fmt", wav->header.formatType, 3)){
-        printf("playWAV(): fmt chunk format not found.\n") ;
-        return;
-    }
-    fread(&(wav->header.formatSize), 4, 1, wav->fp);
-    fread(&(wav->header.compressionCode), 2, 1, wav->fp);
-    fread(&(wav->header.numChannels), 2, 1, wav->fp);
-    fread(&(wav->header.sampleRate), 4, 1, wav->fp);
-    fread(&(wav->header.bytesPerSecond), 4, 1, wav->fp);
-    fread(&(wav->header.blockAlign), 2, 1, wav->fp);
-    fread(&(wav->header.bitsPerSample), 2, 1, wav->fp);
     while(1){
-        if(fread(&wav->header.dataType1, 1, 1, wav->fp) != 1){
-        printf("playWAV(): Unable to read data chunk ID.\n");
-        free(wav);
-        break;
+        I2C_Setup_NAU8822_play();
+        while(mark==STOP){
+            vTaskDelay(100);
         }
-        if(strncmp("d", wav->header.dataType1, 1) == 0){
-            fread(&wav->header.dataType2, 3, 1, wav->fp);
-            if(strncmp("ata", wav->header.dataType2, 3) == 0){
-                fread(&(wav->header.dataSize),4,1,wav->fp);
+        HANDLE_WAV wav = (HANDLE_WAV)calloc(1, sizeof(struct WAV));
+        if(wav == NULL){
+            printf("playWAV(): Unable to allocate WAV struct.\n");
+            return;
+        }
+        vTaskDelay(100);
+        wav->fp = fopen(filename, "rb");
+        if(wav->fp == NULL){
+            printf("playWAV(): Unable to open wav file. %s\n", filename);
+            return;
+        }
+        if(fread(&(wav->header.riffType), 1, 4, wav->fp) != 4){
+            printf("playWAV(): couldn't read RIFF_ID\n");
+            return;  /* bad error "couldn't read RIFF_ID" */
+        }
+        if(strncmp("RIFF", wav->header.riffType, 4)){
+            printf("playWAV(): RIFF descriptor not found.\n") ;
+            return;
+        }
+        fread(&(wav->header.riffSize), 4, 1, wav->fp);
+        if(fread(&wav->header.waveType, 1, 4, wav->fp) !=4){
+            printf("playWAV(): couldn't read format\n");
+            return;  /* bad error "couldn't read format" */
+        }
+        if(strncmp("WAVE", wav->header.waveType, 4)){
+            printf("playWAV(): WAVE chunk ID not found.\n") ;
+            return;
+        }
+        if(fread(&(wav->header.formatType), 1, 4, wav->fp) != 4){
+            printf("playWAV(): couldn't read format_ID\n");
+            return;  /* bad error "couldn't read format_ID" */
+        }
+        if(strncmp("fmt", wav->header.formatType, 3)){
+            printf("playWAV(): fmt chunk format not found.\n") ;
+            return;
+        }
+        fread(&(wav->header.formatSize), 4, 1, wav->fp);
+        fread(&(wav->header.compressionCode), 2, 1, wav->fp);
+        fread(&(wav->header.numChannels), 2, 1, wav->fp);
+        fread(&(wav->header.sampleRate), 4, 1, wav->fp);
+        fread(&(wav->header.bytesPerSecond), 4, 1, wav->fp);
+        fread(&(wav->header.blockAlign), 2, 1, wav->fp);
+        fread(&(wav->header.bitsPerSample), 2, 1, wav->fp);
+        while(1){
+            if(fread(&wav->header.dataType1, 1, 1, wav->fp) != 1){
+                printf("playWAV(): Unable to read data chunk ID.\n");
+                free(wav);
                 break;
             }
+            if(strncmp("d", wav->header.dataType1, 1) == 0){
+                fread(&wav->header.dataType2, 3, 1, wav->fp);
+                if(strncmp("ata", wav->header.dataType2, 3) == 0){
+                    fread(&(wav->header.dataSize),4,1,wav->fp);
+                    break;
+                }
+            }
         }
-    }
-    I2S_MCLK_Init(wav->header.sampleRate);
-    I2S_Master_Init(wav->header.sampleRate ,wav->header.bitsPerSample);
-    i2s_set_sample_rates(I2S_NUM_0, wav->header.sampleRate);
-    while(fread(&wav->header.test, 1 , 800 , wav->fp)){
-        char *buf=(char *)&wav->header.test;
-        int bytes_left=800,bytes_written = 0;
-        while(bytes_left > 0){
-            bytes_written = i2s_write_bytes(I2S_NUM_0 , buf , bytes_left , 0);
-            bytes_left -= bytes_written;
-            buf += bytes_written;
-            if(mark==PAUSE){
+        I2S_MCLK_Init(wav->header.sampleRate);
+        I2S_Master_Init(wav->header.sampleRate ,wav->header.bitsPerSample);
+        i2s_set_sample_rates(I2S_NUM_0, wav->header.sampleRate);
+        while(fread(&wav->header.test, 1 , 800 , wav->fp)){
+            char *buf=(char *)&wav->header.test;
+            int bytes_left=800,bytes_written = 0;
+            while(bytes_left > 0){
+                bytes_written = i2s_write_bytes(I2S_NUM_0 , buf , bytes_left , 0);
+                bytes_left -= bytes_written;
+                buf += bytes_written;
+                if(mark==PAUSE){
+                    I2C_Master_Init();
+                    I2C_WriteNAU8822(52, 0x040);
+                    I2C_WriteNAU8822(53, 0x040);
+                    I2C_WriteNAU8822(54, 0x040);
+                    I2C_WriteNAU8822(55, 0x040);
+                    i2c_driver_delete(I2C_MASTER_NUM);
+                    vTaskDelay(500);
+                    while(mark==PAUSE){
+                        vTaskDelay(100);
+                    }
+                    vTaskDelay(100);
+                    I2C_Master_Init();
+                    I2C_WriteNAU8822(52, Volume2);
+                    I2C_WriteNAU8822(53, Volume2+256);
+                    I2C_WriteNAU8822(54, Volume1);
+                    I2C_WriteNAU8822(55, Volume1+256);
+                    i2c_driver_delete(I2C_MASTER_NUM);
+                }
+                while(mark==SET){
+                    vTaskDelay(10);
+                }
+            }
+            if(mark==STOP){
                 I2C_Master_Init();
                 I2C_WriteNAU8822(52, 0x040);
                 I2C_WriteNAU8822(53, 0x040);
                 I2C_WriteNAU8822(54, 0x040);
                 I2C_WriteNAU8822(55, 0x040);
                 i2c_driver_delete(I2C_MASTER_NUM);
-                vTaskDelay(500);
-                while(mark==PAUSE){
-                vTaskDelay(100);
-                }
-                vTaskDelay(100);
-                I2C_Master_Init();
-                I2C_WriteNAU8822(52, Volume2);
-                I2C_WriteNAU8822(53, Volume2+256);
-                I2C_WriteNAU8822(54, Volume1);
-                I2C_WriteNAU8822(55, Volume1+256);
-                i2c_driver_delete(I2C_MASTER_NUM);
-            }
-            while(mark==SET){
-                vTaskDelay(10);
+                break;
             }
         }
-        if(mark==STOP){
-        I2C_Master_Init();
-        I2C_WriteNAU8822(52, 0x040);
-        I2C_WriteNAU8822(53, 0x040);
-        I2C_WriteNAU8822(54, 0x040);
-        I2C_WriteNAU8822(55, 0x040);
-        i2c_driver_delete(I2C_MASTER_NUM);
-        break;
-        }
+        i2s_stop(I2S_NUM_0);
+        i2s_driver_uninstall(I2S_NUM_0);
+        fclose(wav->fp);
+        free(wav);
+        mark=STOP;
     }
-    i2s_stop(I2S_NUM_0);
-    i2s_driver_uninstall(I2S_NUM_0);
-    fclose(wav->fp);
-    free(wav);
-    mark=STOP;
-}
 }
 
 void DFRobot_IIS::initPlayer(){
@@ -247,63 +248,63 @@ void DFRobot_IIS::playMusic(const char *Filename)
 
 void recordSound(void *arg)
 {
-while(1){
-    I2C_Setup_NAU8822_record();
-    HANDLE_WAV wav = (HANDLE_WAV)calloc(1, sizeof(struct WAV));
-    while(mark==STOP){
-        vTaskDelay(100);
+    while(1){
+        I2C_Setup_NAU8822_record();
+        HANDLE_WAV wav = (HANDLE_WAV)calloc(1, sizeof(struct WAV));
+        while(mark==STOP){
+            vTaskDelay(100);
+        }
+        unsigned int size = 0;
+        if(wav == NULL){
+            printf("recordSound(): Unable to allocate WAV struct.\n");
+            return ;
+        }
+        wav->fp = fopen(outputFilename, "wb");
+        if(wav->fp == NULL){
+            printf("recordSound(): unable to create file %s\n", outputFilename);
+            return ;
+        }
+        strcpy(wav->header.riffType, "RIFF");
+        wav->header.riffSize = 0;  
+        strcpy(wav->header.waveType, "WAVE");
+        strcpy(wav->header.formatType, "fmt ");
+        wav->header.formatSize      = 0x00000010;
+        fwrite(&wav->header.riffType, 1, 20 , wav->fp);
+        wav->header.compressionCode = 1;
+        fwrite(&wav->header.compressionCode, 1 , 2 , wav->fp);
+        wav->header.numChannels     = I2S_CHANNEL_STEREO;
+        fwrite(&wav->header.numChannels, 1, 2, wav->fp);
+        wav->header.sampleRate      = 32000;
+        fwrite(&wav->header.sampleRate, 1, 4 , wav->fp);
+        wav->header.blockAlign      = (short)(I2S_CHANNEL_STEREO *(I2S_BITS_PER_SAMPLE_16BIT >> 3));
+        wav->header.bytesPerSecond  = (32000)*(wav->header.blockAlign);
+        fwrite(&wav->header.bytesPerSecond, 1, 4 , wav->fp);
+        fwrite(&wav->header.blockAlign, 1, 2 , wav->fp);
+        wav->header.bitsPerSample   = I2S_BITS_PER_SAMPLE_16BIT;
+        fwrite(&wav->header.bitsPerSample, 1, 2 , wav->fp);
+        strcpy(wav->header.dataType1, "d");
+        strcpy(wav->header.dataType2, "ata");
+        wav->header.dataSize        = 0;
+        fwrite(&wav->header.dataType1 ,1,8, wav->fp);
+        int bytes_written = 0;
+        char *buf=(char *)&wav->header.test;
+        I2S_MCLK_Init(32000);
+        I2S_Slave_Init(32000,I2S_BITS_PER_SAMPLE_16BIT);
+        vTaskDelay(1000);
+        while(mark!=STOP){
+            bytes_written = i2s_read_bytes(I2S_NUM_0 ,buf, 800 , 100);
+            wav->header.dataSize+=fwrite(buf, 1, bytes_written , wav->fp);
+        }
+        wav->header.riffSize =wav->header.dataSize+44;
+        fseek(wav->fp,4,0);
+        fwrite(&wav->header.riffSize, 1,4, wav->fp);
+        fseek(wav->fp,40,0);
+        fwrite(&wav->header.dataSize, 1,4, wav->fp);
+        fclose(wav->fp);
+        i2s_stop(I2S_NUM_0);
+        i2s_driver_uninstall(I2S_NUM_0);
+        vTaskDelay(1000);
     }
-    unsigned int size = 0;
-    if(wav == NULL){
-        printf("recordSound(): Unable to allocate WAV struct.\n");
-        return ;
-    }
-    wav->fp = fopen(outputFilename, "wb");
-    if(wav->fp == NULL){
-        printf("recordSound(): unable to create file %s\n", outputFilename);
-        return ;
-    }
-    strcpy(wav->header.riffType, "RIFF");
-    wav->header.riffSize = 0;  
-    strcpy(wav->header.waveType, "WAVE");
-    strcpy(wav->header.formatType, "fmt ");
-    wav->header.formatSize      = 0x00000010;
-    fwrite(&wav->header.riffType, 1, 20 , wav->fp);
-    wav->header.compressionCode = 1;
-    fwrite(&wav->header.compressionCode, 1 , 2 , wav->fp);
-    wav->header.numChannels     = I2S_CHANNEL_STEREO;
-    fwrite(&wav->header.numChannels, 1, 2, wav->fp);
-    wav->header.sampleRate      = 32000;
-    fwrite(&wav->header.sampleRate, 1, 4 , wav->fp);
-    wav->header.blockAlign      = (short)(I2S_CHANNEL_STEREO *(I2S_BITS_PER_SAMPLE_16BIT >> 3));
-    wav->header.bytesPerSecond  = (32000)*(wav->header.blockAlign);
-    fwrite(&wav->header.bytesPerSecond, 1, 4 , wav->fp);
-    fwrite(&wav->header.blockAlign, 1, 2 , wav->fp);
-    wav->header.bitsPerSample   = I2S_BITS_PER_SAMPLE_16BIT;
-    fwrite(&wav->header.bitsPerSample, 1, 2 , wav->fp);
-    strcpy(wav->header.dataType1, "d");
-    strcpy(wav->header.dataType2, "ata");
-    wav->header.dataSize        = 0;
-    fwrite(&wav->header.dataType1 ,1,8, wav->fp);
-    int bytes_written = 0;
-    char *buf=(char *)&wav->header.test;
-    I2S_MCLK_Init(32000);
-    I2S_Slave_Init(32000,I2S_BITS_PER_SAMPLE_16BIT);
-    vTaskDelay(1000);
-    while(mark!=STOP){
-    bytes_written = i2s_read_bytes(I2S_NUM_0 ,buf, 800 , 100);
-    wav->header.dataSize+=fwrite(buf, 1, bytes_written , wav->fp);
-    }
-    wav->header.riffSize =wav->header.dataSize+44;
-    fseek(wav->fp,4,0);
-    fwrite(&wav->header.riffSize, 1,4, wav->fp);
-    fseek(wav->fp,40,0);
-    fwrite(&wav->header.dataSize, 1,4, wav->fp);
-    fclose(wav->fp);
-    i2s_stop(I2S_NUM_0);
-    i2s_driver_uninstall(I2S_NUM_0);
-    vTaskDelay(1000);
-}
 }
 
 void DFRobot_IIS::initRecorder()
@@ -381,18 +382,18 @@ void I2C_Setup_NAU8822_play()
     I2C_WriteNAU8822(50, 0x001);
     I2C_WriteNAU8822(51, 0x001);
     if(Volume2 != 0){
-    I2C_WriteNAU8822(52, Volume2);
-    I2C_WriteNAU8822(53, Volume2+256);
+        I2C_WriteNAU8822(52, Volume2);
+        I2C_WriteNAU8822(53, Volume2+256);
     }else{
-    I2C_WriteNAU8822(52, 0x040);
-    I2C_WriteNAU8822(53, 0x040);
+        I2C_WriteNAU8822(52, 0x040);
+        I2C_WriteNAU8822(53, 0x040);
     }
     if(Volume1 != 0){
-    I2C_WriteNAU8822(54, Volume1);
-    I2C_WriteNAU8822(55, Volume1+256);
+        I2C_WriteNAU8822(54, Volume1);
+        I2C_WriteNAU8822(55, Volume1+256);
     }else{
-    I2C_WriteNAU8822(54, 0x040);
-    I2C_WriteNAU8822(55, 0x040);    
+        I2C_WriteNAU8822(54, 0x040);
+        I2C_WriteNAU8822(55, 0x040);
     }
     i2c_driver_delete(I2C_MASTER_NUM);
 }

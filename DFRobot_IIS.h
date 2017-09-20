@@ -65,27 +65,27 @@ extern "C" {
 
 typedef struct WAV_HEADER
 {
-  char                  riffType[4];
-  unsigned int          riffSize;
-  char                  waveType[4];
-  char                  formatType[4];
-  unsigned int          formatSize;
-  uint16_t              compressionCode;
-  i2s_channel_t         numChannels;
-  uint32_t              sampleRate;
-  unsigned int          bytesPerSecond;
-  unsigned short        blockAlign;
-  i2s_bits_per_sample_t bitsPerSample;
-  char                  dataType1[1];
-  char                  dataType2[3];
-  unsigned int          dataSize;
-  char                  test[800];
+    char                  riffType[4];
+    unsigned int          riffSize;
+    char                  waveType[4];
+    char                  formatType[4];
+    unsigned int          formatSize;
+    uint16_t              compressionCode;
+    i2s_channel_t         numChannels;
+    uint32_t              sampleRate;
+    unsigned int          bytesPerSecond;
+    unsigned short        blockAlign;
+    i2s_bits_per_sample_t bitsPerSample;
+    char                  dataType1[1];
+    char                  dataType2[3];
+    unsigned int          dataSize;
+    char                  test[800];
 }WAV_HEADER;
 
 struct WAV
 {
-  WAV_HEADER header;
-  FILE *fp;
+    WAV_HEADER header;
+    FILE *fp;
 };
 
 typedef struct WAV *HANDLE_WAV;
@@ -104,7 +104,7 @@ class DFRobot_IIS
 {
 public:
     bool init(uint8_t mode);
-    bool sdCardInit(void);
+    bool SDCardInit(void);
     void setSpeakersVolume(uint8_t volume);
     void muteSpeakers(void);
     void setHeadphonesVolume(uint8_t volume);

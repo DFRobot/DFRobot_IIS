@@ -18,7 +18,7 @@ The library is used to Play music file from SD card,Record sound and save in SD 
 ```C++
 
 //Init SD card
-void sdCardInit(void);
+void SDCardInit(void);
 
 //Choose audio mode or camera mode,mode:AUDIO CAMERA
 void init(uint8_t mode);

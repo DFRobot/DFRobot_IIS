@@ -12,7 +12,7 @@ DFRobot_IIS	KEYWORD1
 # Methods and Functions (KEYWORD2)
 #######################################	
 
-sdCardInit	KEYWORD2
+SDCardInit	KEYWORD2
 init	KEYWORD2
 setSpeakersVolume	KEYWORD2
 setHeadphonesVolume	KEYWORD2

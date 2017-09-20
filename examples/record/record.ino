@@ -20,7 +20,7 @@ enum Status{
 
 void setup(){
     Serial.begin(115200);
-    iis.sdCardInit();                              // SD card init
+    iis.SDCardInit();                              // SD card init
     iis.init(AUDIO);                               // Init Audio mode
     iis.initRecorder();                            // Init recorder 
     iis.record("/record1.WAV");                    // Enter file name to save recording
@@ -49,7 +49,7 @@ void loop(){
         while((!digitalRead(buttonPin))){
             delay(10);
         }
-        iis.record("/record2.WAV");               // Change file name
+        iis.record("/record2.WAV");                // Change file name
         state=ePrepare;
     }
     delay(100);
