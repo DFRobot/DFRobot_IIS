@@ -29,7 +29,6 @@ void SDCardInit(void);
  *     AUDIO:Audio mode 
  *     CAMERA:Camera mode
  */
-
 void init(uint8_t mode);
 
 /*
@@ -37,7 +36,6 @@ void init(uint8_t mode);
  *
  * @param volume Set volume from 0 to 99
  */
-
  void setSpeakersVolume(uint8_t volume);
 
 /*
