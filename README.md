@@ -134,7 +134,7 @@ FireBeetle-BLE4.1 |             |       √      |            |
 
 ## History
 
-- data 2017-8-1
+- date 2017-9-29
 - version V1.0
 
 ## Credits
