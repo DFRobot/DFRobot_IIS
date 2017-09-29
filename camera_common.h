@@ -43,6 +43,7 @@ typedef struct {
     camera_config_t config;
     sensor_t sensor;
     uint8_t *fb;
+    uint8_t *buffer;
     size_t fb_size;
     size_t data_size;
     size_t width;
@@ -51,7 +52,6 @@ typedef struct {
     size_t fb_bytes_per_pixel;
     size_t stride;
     size_t frame_count;
-
     lldesc_t *dma_desc;
     dma_elem_t **dma_buf;
     bool dma_done;

@@ -16,9 +16,12 @@ typedef enum {
 
 typedef enum {
     CAMERA_FS_QQVGA = 4,        //!< 160x120
+    CAMERA_FS_QQVGA2 = 5,       //!< 128x160
+    CAMERA_FS_QICF = 6,         //!< 176x144
+    CAMERA_FS_HQVGA = 7,        //!< 240x160
     CAMERA_FS_QVGA = 8,         //!< 320x240
-    CAMERA_FS_VGA = 10,         //!< 640x480
-    CAMERA_FS_SVGA = 11,        //!< 800x600
+    //CAMERA_FS_VGA = 10,         //!< 640x480
+    //CAMERA_FS_SVGA = 11,        //!< 800x600
 } camera_framesize_t;
 
 typedef enum {
@@ -57,7 +60,7 @@ typedef struct {
 #define ESP_ERR_CAMERA_FAILED_TO_SET_FRAME_SIZE (ESP_ERR_CAMERA_BASE + 2)
 #define ESP_ERR_CAMERA_NOT_SUPPORTED            (ESP_ERR_CAMERA_BASE + 3)
 
-void      cameramode();
+void      cameramode(uint8_t photoSize);
 int       camera_get_fb_width();
 int       camera_get_fb_height();
 esp_err_t camera_probe(const camera_config_t* config, camera_model_t* out_camera_model);

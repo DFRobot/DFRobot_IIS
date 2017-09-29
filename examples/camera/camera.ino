@@ -17,8 +17,9 @@ int i=0;
 void setup(){
     Serial.begin(115200);
     pinMode(buttonPin, INPUT);
-    iis.SDCardInit();                                // SD card init
+    iis.SDCardInit();                                //SD card init
     iis.init(CAMERA);                                //Init Camera mode and SD card
+    iis.setPhotosize(QVGA);                          //Set photo size QVGA:320x240
     delay(100);
     Serial.println("Ready to take photo");
 }

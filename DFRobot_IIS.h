@@ -63,6 +63,12 @@ extern "C" {
 #define STOP       3
 #define SET        4
 
+#define QQVGA   4
+#define QQVGA2  5
+#define QICF    6
+#define HQVGA   7
+#define QVGA    8
+
 typedef struct WAV_HEADER
 {
     char                  riffType[4];
@@ -109,6 +115,7 @@ public:
     void muteSpeakers(void);
     void setHeadphonesVolume(uint8_t volume);
     void muteHeadphones(void);
+    void setPhotosize(uint8_t photoSize);
     void takePhoto(const char *pictureFilename); 
     void initPlayer();
     void initRecorder();

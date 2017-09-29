@@ -107,6 +107,15 @@ int recordSound(const char *outputFilename);
 void recorderControl(uint8_t cmd);
 
 /*
+ * @brief Set photo siez
+ *
+ * @param photoSize Size of photo
+ *     Possible values: QQVGA(160x120) QQVGA2(128x160) QICF(176x144) HQVGA(240x160) QVGA(320x240)
+ *
+ */
+ void setPhotosize(uint8_t photoSize);
+
+ /*
  * @brief Take photo
  *
  * @param *pictureFilename The name of the file to save picture

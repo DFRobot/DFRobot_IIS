@@ -28,7 +28,8 @@
 char     filename[30];
 char     pictureFilename[30];
 char     outputFilename[30];
-uint8_t  mark=3;
+uint8_t  mark=STOP;
+uint8_t  rmark=STOP;
 uint8_t  Volume1=0;
 uint8_t  Volume2=0;
 
@@ -45,6 +46,7 @@ bool DFRobot_IIS::init(uint8_t mode)
 {
     if(mode==AUDIO){
         mark=STOP;
+        rmark=STOP;
         return true;
     }else if(mode==CAMERA){
         I2C_Master_Init();
@@ -54,7 +56,6 @@ bool DFRobot_IIS::init(uint8_t mode)
         I2C_WriteNAU8822(54, 0x040);
         I2C_WriteNAU8822(55, 0x040);
         i2c_driver_delete(I2C_MASTER_NUM);
-        cameramode();
         return true;
     }else{
         printf("No such mode ");
@@ -117,10 +118,10 @@ void DFRobot_IIS::muteHeadphones(void)
 void playWAV(void *arg)
 {
     while(1){
-        I2C_Setup_NAU8822_play();
         while(mark==STOP){
             vTaskDelay(100);
         }
+        I2C_Setup_NAU8822_play();
         HANDLE_WAV wav = (HANDLE_WAV)calloc(1, sizeof(struct WAV));
         if(wav == NULL){
             printf("playWAV(): Unable to allocate WAV struct.\n");
@@ -236,7 +237,12 @@ void DFRobot_IIS::initPlayer(){
 
 void DFRobot_IIS::playerControl(uint8_t cmd)
 {
+    if(cmd == 1){
+        rmark=STOP;
+        vTaskDelay(500);
+    }
     mark=cmd;
+
 }
 
 void DFRobot_IIS::playMusic(const char *Filename)
@@ -249,11 +255,11 @@ void DFRobot_IIS::playMusic(const char *Filename)
 void recordSound(void *arg)
 {
     while(1){
-        I2C_Setup_NAU8822_record();
         HANDLE_WAV wav = (HANDLE_WAV)calloc(1, sizeof(struct WAV));
-        while(mark==STOP){
+        while(rmark==STOP){
             vTaskDelay(100);
         }
+        I2C_Setup_NAU8822_record();
         unsigned int size = 0;
         if(wav == NULL){
             printf("recordSound(): Unable to allocate WAV struct.\n");
@@ -291,7 +297,7 @@ void recordSound(void *arg)
         I2S_MCLK_Init(32000);
         I2S_Slave_Init(32000,I2S_BITS_PER_SAMPLE_16BIT);
         vTaskDelay(1000);
-        while(mark!=STOP){
+        while(rmark!=STOP){
             bytes_written = i2s_read_bytes(I2S_NUM_0 ,buf, 800 , 100);
             wav->header.dataSize+=fwrite(buf, 1, bytes_written , wav->fp);
         }
@@ -309,13 +315,17 @@ void recordSound(void *arg)
 
 void DFRobot_IIS::initRecorder()
 {
-    mark=STOP;
+    rmark=STOP;
     xTaskCreate(recordSound, "recordSound",2048, NULL, 5, NULL);
 }
 
 void DFRobot_IIS::recorderControl(uint8_t cmd)
 {
-    mark=cmd;
+    if(cmd == 1){
+        mark=STOP;
+        vTaskDelay(500);
+    }
+    rmark=cmd;
 }
 
 void DFRobot_IIS::record(const char *Filename)
@@ -323,6 +333,11 @@ void DFRobot_IIS::record(const char *Filename)
     char SDfilename[30]="/sdcard";
     strcat(SDfilename,Filename);
     strcpy(outputFilename,SDfilename);
+}
+
+void DFRobot_IIS::setPhotosize(uint8_t photoSize)
+{
+    cameramode(photoSize);
 }
 
 void DFRobot_IIS::takePhoto(const char *Filename)

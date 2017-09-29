@@ -38,7 +38,7 @@ extern "C" {
 
 #define ENABLE_TEST_PATTERN CONFIG_ENABLE_TEST_PATTERN
 #define CAMERA_PIXEL_FORMAT CAMERA_PF_RGB565
-#define CAMERA_FRAME_SIZE CAMERA_FS_QQVGA
+#define CAMERA_FRAME_SIZE CAMERA_FS_QVGA
 #define REG_PID        0x0A
 #define REG_VER        0x0B
 #define REG_MIDH       0x1C
@@ -48,6 +48,7 @@ static camera_pixelformat_t s_pixel_format;
 static const char* TAG = "camera";
 
 camera_state_t* s_state = NULL;
+HANDLE_BMP bmp= (HANDLE_BMP)calloc(1,sizeof(struct BMP));
 
 const int resolution[][2] = {
         { 40, 30 }, /* 40x30 */
@@ -228,7 +229,7 @@ esp_err_t camera_init(const camera_config_t* config)
             err = ESP_ERR_NOT_SUPPORTED;
             goto fail;
         }
-        s_state->fb_size = s_state->width * s_state->height * 3;
+        s_state->fb_size = s_state->width * s_state->height * 2;
         if(is_hs_mode()){
             ESP_LOGI(TAG, "s_state->sampling_mode = SM_0A0B_0B0C");
             s_state->sampling_mode = SM_0A0B_0B0C;
@@ -237,7 +238,7 @@ esp_err_t camera_init(const camera_config_t* config)
             s_state->sampling_mode = SM_0A00_0B00;
         }
         s_state->in_bytes_per_pixel = 2;       // camera sends RGB565 (2 bytes)
-        s_state->fb_bytes_per_pixel = 3;       // frame buffer stores RGB888
+        s_state->fb_bytes_per_pixel = 2;       // frame buffer stores RGB555
         s_state->dma_filter = &dma_filter_rgb565;
         ESP_LOGI(TAG, "get rgb buf");
     } else if(pix_format == PIXFORMAT_JPEG){
@@ -272,19 +273,23 @@ esp_err_t camera_init(const camera_config_t* config)
         goto fail;
     }
 
-    ESP_LOGD(TAG, "in_bpp: %d, fb_bpp: %d, fb_size: %d, mode: %d, width: %d height: %d",
+    ESP_LOGE(TAG, "in_bpp: %d, fb_bpp: %d, fb_size: %d, mode: %d, width: %d height: %d",
             s_state->in_bytes_per_pixel, s_state->fb_bytes_per_pixel,
             s_state->fb_size, s_state->sampling_mode,
             s_state->width, s_state->height);
-
-    ESP_LOGD(TAG, "Allocating frame buffer (%d bytes)", s_state->fb_size);
-    s_state->fb = (uint8_t*) calloc(s_state->fb_size, 1);
+    ESP_LOGE(TAG, "Allocating frame buffer (%d bytes)", s_state->fb_size);
+    s_state->fb = (uint8_t*) calloc(112000, 1);
     if(s_state->fb == NULL){
         ESP_LOGE(TAG, "Failed to allocate frame buffer");
         err = ESP_ERR_NO_MEM;
         goto fail;
     }
-
+    s_state->buffer = (uint8_t*) calloc(50000,1);
+    if(s_state->buffer == NULL){
+        ESP_LOGE(TAG, "Failed to allocate frame buffer");
+        err = ESP_ERR_NO_MEM;
+        goto fail;
+    }
     ESP_LOGD(TAG, "Initializing I2S and DMA");
     i2s_init();
     err = dma_desc_init();
@@ -346,30 +351,6 @@ fail:
     return err;
 }
 
-uint8_t* camera_get_fb()
-{
-    if(s_state == NULL){
-        return NULL;
-    }
-    return s_state->fb;
-}
-
-int camera_get_fb_width()
-{
-    if(s_state == NULL){
-        return 0;
-    }
-    return s_state->width;
-}
-
-int camera_get_fb_height()
-{
-    if(s_state == NULL){
-        return 0;
-    }
-    return s_state->height;
-}
-
 size_t camera_get_data_size()
 {
     if(s_state == NULL){
@@ -392,17 +373,6 @@ esp_err_t camera_run(const char *pictureFilename)
     ESP_LOGI(TAG, "Waiting for frame");
     xSemaphoreTake(s_state->frame_ready,portMAX_DELAY);
     get_bmp(pictureFilename);
-  /*  int r,g,b,j;
-   for(j=0;j<57600;j+=3)
-   {
-         r=s_state->fb[j];
-         g=s_state->fb[j+1];
-         b=s_state->fb[j+2];
-     if(j<90)
-     {
-   ESP_LOGI(TAG,"r=0x%2x , g=0x%2x , b=0x%2x",r,g,b);
-     } 
-   }*/
     struct timeval tv_end;
     gettimeofday(&tv_end, NULL);
     int time_ms = (tv_end.tv_sec - tv_start.tv_sec) * 1000 + (tv_end.tv_usec - tv_start.tv_usec) / 1000;
@@ -413,52 +383,52 @@ esp_err_t camera_run(const char *pictureFilename)
 
 static void get_bmp(const char *pictureFilename)
 {
-   HANDLE_BMP bmp= (HANDLE_BMP)calloc(1,sizeof(struct BMP));
-   ESP_LOGD(TAG, "calloc bmp");
-   if(bmp == NULL){
-      printf("BMP_OutputOpen(): Unable to allocate BMP struct.\n");
-      
-    }  
-   bmp->fp = fopen(pictureFilename, "wb");
-   ESP_LOGD(TAG, "open file");
-   bmp->header.BfType=19778;   
-   ESP_LOGD(TAG, "set BM");   
-   bmp->header.BfSize=54;    
-   bmp->header.BfReserved1=0;
-   bmp->header.BfReserved2=0;
-   bmp->header.BfOffBits=54;
-   bmp->header.BitsSize=40;
-   bmp->header.BiWidth=160;
-   bmp->header.BiHighth=120;
-   bmp->header.BiPlanes=1;
-   bmp->header.BitCount=16;
-   ESP_LOGD(TAG, "set data");
-   bmp->header.BiCompression=0;
-   bmp->header.BiSizeTmage=0;
-   bmp->header.Bixpels=2400;
-   bmp->header.Biypels=2400;
-   bmp->header.BiClrUsed=0;
-   bmp->header.BiClrImportant=0;
-   ESP_LOGD(TAG, "set head");
-   fwrite(&(bmp->header.BfType) , 1, 54 , bmp->fp);
-   ESP_LOGD(TAG, "write file");
-   int r,g,b,gry,j;
-  for(j=0;j<57600;j+=3)
-   {     
-         b=s_state->fb[j];
-         g=s_state->fb[j+1];
-         r=s_state->fb[j+2];
-         gry=(b+g+r)/3;
-     fwrite(&b , 1, 1, bmp->fp);
-     fwrite(&g , 1, 1, bmp->fp);
-    // fwrite(&gry , 1, 1, bmp->fp);
-     bmp->header.BfSize+=2;
-     bmp->header.BiSizeTmage+=2;
-   }
-  fseek(bmp->fp,2,0);
-  vTaskDelay(10 / portTICK_PERIOD_MS);
-  fwrite(&(bmp->header.BfSize) , 1, 52, bmp->fp);
-  fclose(bmp->fp);
+    bmp->fp = fopen(pictureFilename, "wb");
+    ESP_LOGD(TAG, "calloc bmp");
+    if(bmp == NULL){
+        printf("BMP_OutputOpen(): Unable to allocate BMP struct.\n");
+    }
+    ESP_LOGD(TAG, "open file");
+    bmp->header.BfType=19778;   
+    ESP_LOGD(TAG, "set BM");   
+    bmp->header.BfSize=54;    
+    bmp->header.BfReserved1=0;
+    bmp->header.BfReserved2=0;
+    bmp->header.BfOffBits=54;
+    bmp->header.BitsSize=40;
+    bmp->header.BiWidth=s_state->width;
+    bmp->header.BiHighth=s_state->height;
+    bmp->header.BiPlanes=1;
+    bmp->header.BitCount=16;
+    printf(TAG, "set data");
+    bmp->header.BiCompression=0;
+    bmp->header.BiSizeTmage=0;
+    bmp->header.Bixpels=2400;
+    bmp->header.Biypels=2400;
+    bmp->header.BiClrUsed=0;
+    bmp->header.BiClrImportant=0;
+    ESP_LOGD(TAG, "set head");
+    fwrite(&(bmp->header.BfType) , 1, 54 , bmp->fp);
+    ESP_LOGD(TAG, "write file");
+    int r,g,b,gry,j;
+    for(j=0;j<s_state->fb_size;j+=2)
+    {     
+        if(j<112000){
+            b=s_state->fb[j];
+            g=s_state->fb[j+1];
+        }else{
+            b=s_state->buffer[j-112000];
+            g=s_state->buffer[j-112000+1];
+        }
+        fwrite(&b , 1, 1, bmp->fp);
+        fwrite(&g , 1, 1, bmp->fp);
+        bmp->header.BfSize+=2;
+        bmp->header.BiSizeTmage+=2;
+    }
+    fseek(bmp->fp,2,0);
+    vTaskDelay(10 / portTICK_PERIOD_MS);
+    fwrite(&(bmp->header.BfSize) , 1, 52, bmp->fp);
+    fclose(bmp->fp);
 }
 
 static esp_err_t dma_desc_init()
@@ -496,7 +466,6 @@ static esp_err_t dma_desc_init()
         }
         s_state->dma_buf[i] = buf;
         ESP_LOGV(TAG, "dma_buf[%d]=%p", i, buf);
-
         lldesc_t* pd = &s_state->dma_desc[i];
         pd->length = buf_size;
         if(s_state->sampling_mode == SM_0A0B_0B0C &&
@@ -548,8 +517,6 @@ static inline void i2s_conf_reset()
 static void i2s_init()
 {
     camera_config_t* config = &s_state->config;
-
-    // Configure input GPIOs
     gpio_num_t pins[] = {
             (gpio_num_t)config->pin_d7,
             (gpio_num_t)config->pin_d6,
@@ -737,8 +704,12 @@ static void IRAM_ATTR dma_filter_task(void *pvParameters)
             xSemaphoreGive(s_state->frame_ready);
             continue;
         }
-
-        uint8_t* pfb = s_state->fb + get_fb_pos();
+        uint8_t* pfb;
+        if(get_fb_pos()<112000){
+            pfb = s_state->fb + get_fb_pos();
+        }else{
+            pfb = s_state->buffer + get_fb_pos() - 112000;
+        }
         const dma_elem_t* buf = s_state->dma_buf[buf_idx];
         lldesc_t* desc = &s_state->dma_desc[buf_idx];
         ESP_LOGV(TAG, "dma_flt: pos=%d ", get_fb_pos());
@@ -753,7 +724,6 @@ static void IRAM_ATTR dma_filter_grayscale(const dma_elem_t* src, lldesc_t* dma_
     assert(s_state->sampling_mode == SM_0A0B_0C0D);
     size_t end = dma_desc->length / sizeof(dma_elem_t) / 4;
     for (size_t i = 0; i < end; ++i){
-        // manually unrolling 4 iterations of the loop here
         dst[0] = src[0].sample1;
         dst[1] = src[1].sample1;
         dst[2] = src[2].sample1;
@@ -769,7 +739,6 @@ static void IRAM_ATTR dma_filter_grayscale_highspeed(const dma_elem_t* src, llde
     assert(s_state->sampling_mode == SM_0A0B_0B0C);
     size_t end = dma_desc->length / sizeof(dma_elem_t) / 8;
     for (size_t i = 0; i < end; ++i){
-        // manually unrolling 4 iterations of the loop here
         dst[0] = src[0].sample1;
         dst[1] = src[2].sample1;
         dst[2] = src[4].sample1;
@@ -777,7 +746,6 @@ static void IRAM_ATTR dma_filter_grayscale_highspeed(const dma_elem_t* src, llde
         src += 8;
         dst += 4;
     }
-    // the final sample of a line in SM_0A0B_0B0C sampling mode needs special handling
     if((dma_desc->length & 0x7) != 0){
         dst[0] = src[0].sample1;
         dst[1] = src[2].sample1;
@@ -790,7 +758,6 @@ static void IRAM_ATTR dma_filter_jpeg(const dma_elem_t* src, lldesc_t* dma_desc,
     assert(s_state->sampling_mode == SM_0A0B_0B0C ||
            s_state->sampling_mode == SM_0A00_0B00 );
     size_t end = dma_desc->length / sizeof(dma_elem_t) / 4;
-    // manually unrolling 4 iterations of the loop here
     for (size_t i = 0; i < end; ++i){
         dst[0] = src[0].sample1;
         dst[1] = src[1].sample1;
@@ -799,7 +766,6 @@ static void IRAM_ATTR dma_filter_jpeg(const dma_elem_t* src, lldesc_t* dma_desc,
         src += 4;
         dst += 4;
     }
-    // the final sample of a line in SM_0A0B_0B0C sampling mode needs special handling
     if((dma_desc->length & 0x7) != 0){
         dst[0] = src[0].sample1;
         dst[1] = src[1].sample1;
@@ -810,43 +776,31 @@ static void IRAM_ATTR dma_filter_jpeg(const dma_elem_t* src, lldesc_t* dma_desc,
 
 static inline void rgb565_to_888(uint8_t in1, uint8_t in2, uint8_t* dst)
 {
- /*   dst[0] = ((in2 & 0b00011111) << 3); // blue
- //   ESP_LOGI(TAG, "blue=0x%2x",dst[0]);
-    dst[1] = ((in1 & 0b00000111) << 5) | ((in2 & 0b11100000 >> 3)); // green
- //   ESP_LOGI(TAG, "green=0x%2x",dst[1]);
-    dst[2] = (in1 & 0b11111000);//|((in1 & 0b00111000)>>3); // red
-  //  ESP_LOGI(TAG, "red=0x%2x",dst[2]);
-    //delay(10);
-*/
     dst[0]=((in2&0x1f)|(in1&0x01)<<7|(in2&0xC0)>>1);
     dst[1]=in1>>1;
-    dst[2]=0;
- 
 }
 
 static void IRAM_ATTR dma_filter_rgb565(const dma_elem_t* src, lldesc_t* dma_desc, uint8_t* dst)
 {
-   // ESP_LOGI(TAG, "rgb565");
     assert(s_state->sampling_mode == SM_0A0B_0B0C ||
            s_state->sampling_mode == SM_0A00_0B00);
-
-    const int unroll = 2;         // manually unrolling 2 iterations of the loop
+    const int unroll = 2;         
     const int samples_per_pixel = 2;
-    const int bytes_per_pixel = 3;
+    const int bytes_per_pixel = 2;
     size_t end = dma_desc->length / sizeof(dma_elem_t) / unroll / samples_per_pixel;
     for (size_t i = 0; i < end; ++i){
         rgb565_to_888(src[0].sample1, src[1].sample1, &dst[0]);
-        rgb565_to_888(src[2].sample1, src[3].sample1, &dst[3]);
+        rgb565_to_888(src[2].sample1, src[3].sample1, &dst[2]);
         dst += bytes_per_pixel * unroll;
         src += samples_per_pixel * unroll;
     }
     if((dma_desc->length & 0x7) != 0){
         rgb565_to_888(src[0].sample1, src[1].sample1, &dst[0]);
-        rgb565_to_888(src[2].sample1, src[2].sample2, &dst[3]);
+        rgb565_to_888(src[2].sample1, src[2].sample2, &dst[2]);
     }
 }
 
-void cameramode()
+void cameramode(uint8_t photoSize)
 {
     camera_config_t camera_config;
         camera_config.pin_d0 = 17;
@@ -876,13 +830,8 @@ void cameramode()
     if(camera_model == CAMERA_OV7725){
         ESP_LOGE(TAG, "Detected OV7725 camera, using rgb555 bitmap format");
         s_pixel_format = CAMERA_PF_RGB565;
-        camera_config.frame_size = CAMERA_FRAME_SIZE;
-    } else if(camera_model == CAMERA_OV2640){
-        ESP_LOGE(TAG, "Detected OV2640 camera, using JPEG format");
-        s_pixel_format = CAMERA_PF_JPEG;
-        camera_config.frame_size = CAMERA_FS_VGA;
-        camera_config.jpeg_quality = 15;
-    } else {
+        camera_config.frame_size = (camera_framesize_t)photoSize;
+    }else{
         ESP_LOGE(TAG, "Camera not supported");
         return;
     }
