@@ -115,8 +115,8 @@ public:
     void muteSpeakers(void);
     void setHeadphonesVolume(uint8_t volume);
     void muteHeadphones(void);
-    void setPhotosize(uint8_t photoSize);
-    void takePhoto(const char *pictureFilename); 
+    void setFramesize(uint8_t photoSize);
+    void snapshot(const char *pictureFilename); 
     void initPlayer();
     void initRecorder();
     void playMusic(const char *Filename);

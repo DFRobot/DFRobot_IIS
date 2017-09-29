@@ -19,7 +19,7 @@ void setup(){
     pinMode(buttonPin, INPUT);
     iis.SDCardInit();                                //SD card init
     iis.init(CAMERA);                                //Init Camera mode and SD card
-    iis.setPhotosize(QVGA);                          //Set photo size QVGA:320x240
+    iis.setFramesize(QVGA);                          //Set photo size QVGA:320x240
     delay(100);
     Serial.println("Ready to take photo");
 }
@@ -27,9 +27,9 @@ void setup(){
 void loop(){
     if(!digitalRead(buttonPin)&&i==0){               //Press user key to take photo
         while((!digitalRead(buttonPin))){
-        delay(10);
+            delay(10);
         }
-        iis.takePhoto("/photo1.bmp");                //Take photo and save it as photo1.bmp in SD card
+        iis.snapshot("/photo1.bmp");                 //Take photo and save it as photo1.bmp in SD card
         Serial.println("take photo1");
         i=1;
     }
@@ -38,7 +38,7 @@ void loop(){
         while((!digitalRead(buttonPin))){
             delay(10);
         }
-        iis.takePhoto("/photo2.bmp");
+        iis.snapshot("/photo2.bmp");
         Serial.println("take photo2");  
         i=0;
     }

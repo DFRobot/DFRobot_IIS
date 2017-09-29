@@ -335,12 +335,12 @@ void DFRobot_IIS::record(const char *Filename)
     strcpy(outputFilename,SDfilename);
 }
 
-void DFRobot_IIS::setPhotosize(uint8_t photoSize)
+void DFRobot_IIS::setFramesize(uint8_t photoSize)
 {
     cameramode(photoSize);
 }
 
-void DFRobot_IIS::takePhoto(const char *Filename)
+void DFRobot_IIS::snapshot(const char *Filename)
 {
     char SDfilename[30]="/sdcard";
     strcat(SDfilename,Filename);

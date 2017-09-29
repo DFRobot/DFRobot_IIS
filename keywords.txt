@@ -24,8 +24,8 @@ recorderControl	KEYWORD2
 initPlayer	KEYWORD2
 initRecorder	KEYWORD2
 record	KEYWORD2
-setPhotosize	KEYWORD2
-takephoto	KEYWORD2
+setFramesize	KEYWORD2
+snapshot	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
