@@ -113,7 +113,7 @@ void recorderControl(uint8_t cmd);
  *     Possible values: QQVGA(160x120) QQVGA2(128x160) QICF(176x144) HQVGA(240x160) QVGA(320x240)
  *
  */
- void setPhotosize(uint8_t photoSize);
+void setPhotosize(uint8_t photoSize);
 
  /*
  * @brief Take photo

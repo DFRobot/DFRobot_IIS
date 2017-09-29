@@ -23,7 +23,6 @@ void setup(){
     iis.SDCardInit();                              // SD card init
     iis.init(AUDIO);                               // Init Audio mode
     iis.initRecorder();                            // Init recorder 
-    iis.initPlayer();
     iis.record("/record1.WAV");                    // Enter file name to save recording
     Serial.println("Ready to record");
 }
@@ -45,13 +44,13 @@ void loop(){
         iis.recorderControl(STOP);                 // eStop recording
         Serial.println("Stop and save data");
         state=eStop;
-    }
+    }  
     if((!digitalRead(buttonPin))&&state==eStop){
         while((!digitalRead(buttonPin))){
             delay(10);
         }
-        iis.playMusic("/record1.WAV");
-        iis.playerControl(PLAY);
+        iis.record("/record2.WAV");                // Change file name
+        state=ePrepare;
     }
     delay(100);
 }
