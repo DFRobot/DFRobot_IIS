@@ -68,6 +68,8 @@ extern "C" {
 #define QICF    6
 #define HQVGA   7
 #define QVGA    8
+#define RGB     0
+#define GRAY    2
 
 typedef struct WAV_HEADER
 {
@@ -111,17 +113,19 @@ class DFRobot_IIS
 public:
     bool init(uint8_t mode);
     bool SDCardInit(void);
+    void sendPhoto(void);
     void setSpeakersVolume(uint8_t volume);
     void muteSpeakers(void);
     void setHeadphonesVolume(uint8_t volume);
     void muteHeadphones(void);
-    void setFramesize(uint8_t photoSize);
-    void snapshot(const char *pictureFilename); 
+    void setPhotoformat(uint8_t photoSize,uint8_t pixelFormat);
+    void snapshot(const char *pictureFilename);
+    void connectNet(const char* ssid,const char* password);
     void initPlayer();
     void initRecorder();
     void playMusic(const char *Filename);
     void record(const char *Filename);
-    void playerControl(uint8_t cmd);  
+    void playerControl(uint8_t cmd);
     void recorderControl(uint8_t cmd);
     bool SDcard_Init(const char* mountpoint="/sdcard");
 };

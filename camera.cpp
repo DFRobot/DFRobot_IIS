@@ -7,6 +7,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
+#include "freertos/Event_groups.h"
 #include "rom/lldesc.h"
 #include "soc/soc.h"
 #include "soc/gpio_sig_map.h"
@@ -20,6 +21,16 @@ extern "C" {
 #include "driver/periph_ctrl.h"
 #include "esp_intr_alloc.h"
 #include "esp_log.h"
+#include "esp_system.h"
+#include "esp_wifi.h"
+#include "esp_event_loop.h"
+#include "esp_log.h"
+#include "nvs_flash.h"
+#include "driver/gpio.h"
+
+#include "lwip/sys.h"
+#include "lwip/netdb.h"
+#include "lwip/api.h"
 #include "sensor.h"
 #include "sccb.h"
 #include "camera.h"
@@ -27,7 +38,9 @@ extern "C" {
 #include "xclk.h"
 #include "bmp.h"
 #include "SDcard.h"
-
+#include "sys/socket.h"
+#include "esp_event_loop.h"
+#include "esp_log.h"
 #define CONFIG_OV7725_SUPPORT 1
 #if CONFIG_OV2640_SUPPORT
 #include "ov2640.h"
@@ -37,18 +50,205 @@ extern "C" {
 #endif
 
 #define ENABLE_TEST_PATTERN CONFIG_ENABLE_TEST_PATTERN
-#define CAMERA_PIXEL_FORMAT CAMERA_PF_RGB565
-#define CAMERA_FRAME_SIZE CAMERA_FS_QVGA
 #define REG_PID        0x0A
 #define REG_VER        0x0B
 #define REG_MIDH       0x1C
 #define REG_MIDL       0x1D
 
 static camera_pixelformat_t s_pixel_format;
+static void i2s_init();
+static void i2s_run();
+static void IRAM_ATTR gpio_isr(void* arg);
+static void IRAM_ATTR i2s_isr(void* arg);
+static void dma_desc_deinit();
+static void dma_filter_task(void *pvParameters);
+static void dma_filter_grayscale(const dma_elem_t* src, lldesc_t* dma_desc, uint8_t* dst);
+static void dma_filter_grayscale_highspeed(const dma_elem_t* src, lldesc_t* dma_desc, uint8_t* dst);
+static void dma_filter_jpeg(const dma_elem_t* src, lldesc_t* dma_desc, uint8_t* dst);
+static void dma_filter_rgb565(const dma_elem_t* src, lldesc_t* dma_desc, uint8_t* dst);
+static void i2s_stop();
+static void get_bmp(const char*pictureFilename);
+static esp_err_t dma_desc_init();
 static const char* TAG = "camera";
 
 camera_state_t* s_state = NULL;
 HANDLE_BMP bmp= (HANDLE_BMP)calloc(1,sizeof(struct BMP));
+
+int state = 0;
+const static char http_hdr[] = "HTTP/1.1 200 OK\r\n";
+const static char http_stream_hdr[] = 
+        "Content-type: multipart/x-mixed-replace; boundary=123456789000000000000987654321\r\n\r\n";
+const static char http_jpg_hdr[] =
+        "Content-type: image/jpg\r\n\r\n";
+const static char http_pgm_hdr[] =
+        "Content-type: image/x-portable-graymap\r\n\r\n";
+const static char http_stream_boundary[] = "--123456789000000000000987654321\r\n";
+
+static EventGroupHandle_t wifi_event_group;
+const int CONNECTED_BIT = BIT0;
+static ip4_addr_t s_ip_addr;
+
+static esp_err_t event_handler(void *ctx, system_event_t *event)
+{
+    switch (event->event_id) {
+        case SYSTEM_EVENT_STA_START:
+            esp_wifi_connect();
+            break;
+        case SYSTEM_EVENT_STA_GOT_IP:
+            xEventGroupSetBits(wifi_event_group, CONNECTED_BIT);
+            s_ip_addr = event->event_info.got_ip.ip_info.ip;
+            break;
+        case SYSTEM_EVENT_STA_DISCONNECTED:
+            /* This is a workaround as ESP32 WiFi libs don't currently
+             auto-reassociate. */
+            esp_wifi_connect();
+            xEventGroupClearBits(wifi_event_group, CONNECTED_BIT);
+            break;
+        default:
+            break;
+    }
+    return ESP_OK;
+}
+
+static void initialise_wifi(const char* ssid,const char* password)
+{
+    tcpip_adapter_init();
+    wifi_event_group = xEventGroupCreate();
+    ESP_ERROR_CHECK( esp_event_loop_init(event_handler, NULL) );
+    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+    ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
+    ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
+    wifi_config_t  wifi_config={ 0 };
+    strncpy((char*)wifi_config.sta.ssid,ssid,sizeof(wifi_config.sta.ssid));
+    strncpy((char*)wifi_config.sta.password,password,sizeof(wifi_config.sta.password));
+    ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_STA) );
+    ESP_ERROR_CHECK( esp_wifi_set_config(WIFI_IF_STA, &wifi_config) );
+    ESP_ERROR_CHECK( esp_wifi_start() );
+    ESP_ERROR_CHECK( esp_wifi_set_ps(WIFI_PS_NONE) );
+    ESP_LOGE(TAG, "Connecting to \"%s\"", wifi_config.sta.ssid);
+    xEventGroupWaitBits(wifi_event_group, CONNECTED_BIT, false, true, portMAX_DELAY);
+    ESP_LOGE(TAG, "Connected");
+}
+
+static esp_err_t camerarun()
+{
+    if (s_state == NULL) {
+        return ESP_ERR_INVALID_STATE;
+    }
+    struct timeval tv_start;
+    gettimeofday(&tv_start, NULL);
+#ifndef _NDEBUG
+    memset(s_state->fb, 0, s_state->fb_size);
+#endif // _NDEBUG
+    i2s_run();
+    ESP_LOGD(TAG, "Waiting for frame");
+    xSemaphoreTake(s_state->frame_ready, portMAX_DELAY);
+    struct timeval tv_end;
+    gettimeofday(&tv_end, NULL);
+    int time_ms = (tv_end.tv_sec - tv_start.tv_sec) * 1000 + (tv_end.tv_usec - tv_start.tv_usec) / 1000;
+    ESP_LOGI(TAG, "Frame %d done in %d ms", s_state->frame_count, time_ms);
+    s_state->frame_count++;
+    return ESP_OK;
+}
+
+static void http_server_netconn_serve(struct netconn *conn)
+{
+    struct netbuf *inbuf;
+    char *buf;
+    u16_t buflen;
+    err_t err;
+    /* Read the data from the port, blocking if nothing yet there.
+     We assume the request (the part we care about) is in one netbuf */
+    err = netconn_recv(conn, &inbuf);
+    if (err == ERR_OK) {
+        netbuf_data(inbuf, (void**) &buf, &buflen);
+        /* Is this an HTTP GET command? (only check the first 5 chars, since
+         there are other formats for GET, and we're keeping it very simple )*/
+        if (buflen >= 5 && buf[0] == 'G' && buf[1] == 'E' && buf[2] == 'T'
+                && buf[3] == ' ' && buf[4] == '/') {
+          /* Send the HTTP header
+             * subtract 1 from the size, since we dont send the \0 in the string
+             * NETCONN_NOCOPY: our data is const static, so no need to copy it
+             */
+            netconn_write(conn, http_hdr, sizeof(http_hdr) - 1,
+                    NETCONN_NOCOPY);
+            //check if a stream is requested.
+            if (buf[5] == 's') {
+                //Send mjpeg stream header
+                err = netconn_write(conn, http_stream_hdr, sizeof(http_stream_hdr) - 1,
+                    NETCONN_NOCOPY);
+                ESP_LOGD(TAG, "Stream started.");
+                //Run while everyhting is ok and connection open.
+                while(err == ERR_OK) {
+                    ESP_LOGD(TAG, "Capture frame");
+                    err = camerarun();
+                    if (err != ESP_OK) {
+                        ESP_LOGD(TAG, "Camera capture failed with error = %d", err);
+                    } else {
+                        ESP_LOGD(TAG, "Done");
+                        //Send jpeg header
+                        err = netconn_write(conn, http_jpg_hdr, sizeof(http_jpg_hdr) - 1,
+                            NETCONN_NOCOPY);
+                        //Send frame
+                        err = netconn_write(conn, camera_get_fb(), camera_get_data_size(),
+                            NETCONN_NOCOPY);
+                        if(err == ERR_OK)
+                        {
+                            //Send boundary to next jpeg
+                            err = netconn_write(conn, http_stream_boundary,
+                                    sizeof(http_stream_boundary) -1, NETCONN_NOCOPY);
+                        }
+                    }
+                }
+                ESP_LOGD(TAG, "Stream ended.");
+            } else {
+                if (s_pixel_format == CAMERA_PF_JPEG) {
+                    netconn_write(conn, http_jpg_hdr, sizeof(http_jpg_hdr) - 1, NETCONN_NOCOPY);
+                } else if (s_pixel_format == CAMERA_PF_GRAYSCALE) {
+                    netconn_write(conn, http_pgm_hdr, sizeof(http_pgm_hdr) - 1, NETCONN_NOCOPY);
+                    if (memcmp(&buf[5], "pgm", 3) == 0) {
+                        char pgm_header[32];
+                        snprintf(pgm_header, sizeof(pgm_header), "P5 %d %d %d\n", camera_get_fb_width(), camera_get_fb_height(), 255);
+                        netconn_write(conn, pgm_header, strlen(pgm_header), NETCONN_COPY);
+                    }
+                }
+                ESP_LOGD(TAG, "Image requested.");
+                err = camerarun();
+                if (err != ESP_OK) {
+                    ESP_LOGD(TAG, "Camera capture failed with error = %d", err);
+                } else {
+                    ESP_LOGD(TAG, "Done");
+                    //Send jpeg
+                    err = netconn_write(conn, camera_get_fb(), camera_get_data_size(),
+                        NETCONN_NOCOPY);
+                }
+            }
+        }
+    }
+    /* Close the connection (server closes in HTTP) */
+    netconn_close(conn);
+    /* Delete the buffer (netconn_recv gives us ownership,
+     so we have to make sure to deallocate the buffer) */
+    netbuf_delete(inbuf);
+}
+
+static void http_server(void *pvParameters)
+{
+    struct netconn *conn, *newconn;
+    err_t err;
+    conn = netconn_new(NETCONN_TCP);
+    netconn_bind(conn, NULL, 80);
+    netconn_listen(conn);
+    do {
+        err = netconn_accept(conn, &newconn);
+        if (err == ERR_OK) {
+            http_server_netconn_serve(newconn);
+            netconn_delete(newconn);
+        }
+    } while (err == ERR_OK);
+    netconn_close(conn);
+    netconn_delete(conn);
+}
 
 const int resolution[][2] = {
         { 40, 30 }, /* 40x30 */
@@ -67,19 +267,6 @@ const int resolution[][2] = {
         { 1600, 1200 }, /* UXGA  */
 };
 
-static void i2s_init();
-static void i2s_run();
-static void IRAM_ATTR gpio_isr(void* arg);
-static void IRAM_ATTR i2s_isr(void* arg);
-static void dma_desc_deinit();
-static void dma_filter_task(void *pvParameters);
-static void dma_filter_grayscale(const dma_elem_t* src, lldesc_t* dma_desc, uint8_t* dst);
-static void dma_filter_grayscale_highspeed(const dma_elem_t* src, lldesc_t* dma_desc, uint8_t* dst);
-static void dma_filter_jpeg(const dma_elem_t* src, lldesc_t* dma_desc, uint8_t* dst);
-static void dma_filter_rgb565(const dma_elem_t* src, lldesc_t* dma_desc, uint8_t* dst);
-static void i2s_stop();
-static void get_bmp(const char*pictureFilename);
-static esp_err_t dma_desc_init();
 static bool is_hs_mode()
 {
     return s_state->config.xclk_freq_hz > 10000000;
@@ -166,10 +353,8 @@ esp_err_t camera_probe(const camera_config_t* config, camera_model_t* out_camera
             ESP_LOGE(TAG, "Detected camera not supported.");
             return ESP_ERR_CAMERA_NOT_SUPPORTED;
     }
-
     ESP_LOGE(TAG, "Doing SW reset of sensor");
     s_state->sensor.reset(&s_state->sensor);
-   
     return ESP_OK;
 }
 
@@ -272,23 +457,31 @@ esp_err_t camera_init(const camera_config_t* config)
         err = ESP_ERR_NOT_SUPPORTED;
         goto fail;
     }
-
     ESP_LOGE(TAG, "in_bpp: %d, fb_bpp: %d, fb_size: %d, mode: %d, width: %d height: %d",
             s_state->in_bytes_per_pixel, s_state->fb_bytes_per_pixel,
             s_state->fb_size, s_state->sampling_mode,
             s_state->width, s_state->height);
     ESP_LOGE(TAG, "Allocating frame buffer (%d bytes)", s_state->fb_size);
-    s_state->fb = (uint8_t*) calloc(112000, 1);
-    if(s_state->fb == NULL){
-        ESP_LOGE(TAG, "Failed to allocate frame buffer");
-        err = ESP_ERR_NO_MEM;
-        goto fail;
-    }
-    s_state->buffer = (uint8_t*) calloc(50000,1);
-    if(s_state->buffer == NULL){
-        ESP_LOGE(TAG, "Failed to allocate frame buffer");
-        err = ESP_ERR_NO_MEM;
-        goto fail;
+    if(pix_format == CAMERA_PF_RGB565){
+        s_state->fb = (uint8_t*) calloc(112000, 1);
+        if(s_state->fb == NULL){
+            ESP_LOGE(TAG, "Failed to allocate frame buffer");
+            err = ESP_ERR_NO_MEM;
+            goto fail;
+        }
+        s_state->buffer = (uint8_t*) calloc(50000,1);
+        if(s_state->buffer == NULL){
+            ESP_LOGE(TAG, "Failed to allocate frame buffer");
+            err = ESP_ERR_NO_MEM;
+            goto fail;
+        }
+    }else{
+        s_state->fb = (uint8_t*) calloc(76800, 1);
+        if(s_state->fb == NULL){
+            ESP_LOGE(TAG, "Failed to allocate frame buffer");
+            err = ESP_ERR_NO_MEM;
+            goto fail;
+        }
     }
     ESP_LOGD(TAG, "Initializing I2S and DMA");
     i2s_init();
@@ -356,7 +549,32 @@ size_t camera_get_data_size()
     if(s_state == NULL){
         return 0;
     }
+    //ESP_LOGE(TAG,"size = %d",s_state->data_size)
     return s_state->data_size;
+}
+
+uint8_t* camera_get_fb()
+{
+    if (s_state == NULL) {
+        return NULL;
+    }
+    return s_state->fb;
+}
+
+int camera_get_fb_width()
+{
+    if (s_state == NULL) {
+        return 0;
+    }
+    return s_state->width;
+}
+
+int camera_get_fb_height()
+{
+    if (s_state == NULL) {
+        return 0;
+    }
+    return s_state->height;
 }
 
 esp_err_t camera_run(const char *pictureFilename)
@@ -399,7 +617,7 @@ static void get_bmp(const char *pictureFilename)
     bmp->header.BiWidth=s_state->width;
     bmp->header.BiHighth=s_state->height;
     bmp->header.BiPlanes=1;
-    bmp->header.BitCount=16;
+    bmp->header.BitCount=8*(s_state->fb_bytes_per_pixel);
     printf(TAG, "set data");
     bmp->header.BiCompression=0;
     bmp->header.BiSizeTmage=0;
@@ -535,12 +753,10 @@ static void i2s_init()
             conf.pull_up_en = GPIO_PULLUP_ENABLE;
             conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
             conf .intr_type = GPIO_INTR_DISABLE;
-    
     for (int i = 0; i < sizeof(pins) / sizeof(gpio_num_t); ++i){
         conf.pin_bit_mask = 1LL << pins[i];
         gpio_config(&conf);
     }
-
     // Route input GPIOs to I2S peripheral using GPIO matrix
     gpio_matrix_in(config->pin_d0, I2S0I_DATA_IN0_IDX, false);
     gpio_matrix_in(config->pin_d1, I2S0I_DATA_IN1_IDX, false);
@@ -589,7 +805,6 @@ static void i2s_init()
     ESP_INTR_FLAG_INTRDISABLED | ESP_INTR_FLAG_LEVEL1 | ESP_INTR_FLAG_IRAM,
             &i2s_isr, NULL, &s_state->i2s_intr_handle);
 }
-
 
 static void i2s_stop()
 {
@@ -641,7 +856,6 @@ static void i2s_run()
         esp_intr_enable(s_state->vsync_intr_handle);
     }
     I2S0.conf.rx_start = 1;
-
 }
 
 static void IRAM_ATTR signal_dma_buf_received(bool* need_yield)
@@ -705,6 +919,7 @@ static void IRAM_ATTR dma_filter_task(void *pvParameters)
             continue;
         }
         uint8_t* pfb;
+        
         if(get_fb_pos()<112000){
             pfb = s_state->fb + get_fb_pos();
         }else{
@@ -774,7 +989,7 @@ static void IRAM_ATTR dma_filter_jpeg(const dma_elem_t* src, lldesc_t* dma_desc,
     }
 }
 
-static inline void rgb565_to_888(uint8_t in1, uint8_t in2, uint8_t* dst)
+static inline void rgb565_to_555(uint8_t in1, uint8_t in2, uint8_t* dst)
 {
     dst[0]=((in2&0x1f)|(in1&0x01)<<7|(in2&0xC0)>>1);
     dst[1]=in1>>1;
@@ -789,18 +1004,18 @@ static void IRAM_ATTR dma_filter_rgb565(const dma_elem_t* src, lldesc_t* dma_des
     const int bytes_per_pixel = 2;
     size_t end = dma_desc->length / sizeof(dma_elem_t) / unroll / samples_per_pixel;
     for (size_t i = 0; i < end; ++i){
-        rgb565_to_888(src[0].sample1, src[1].sample1, &dst[0]);
-        rgb565_to_888(src[2].sample1, src[3].sample1, &dst[2]);
+        rgb565_to_555(src[0].sample1, src[1].sample1, &dst[0]);
+        rgb565_to_555(src[2].sample1, src[3].sample1, &dst[2]);
         dst += bytes_per_pixel * unroll;
         src += samples_per_pixel * unroll;
     }
     if((dma_desc->length & 0x7) != 0){
-        rgb565_to_888(src[0].sample1, src[1].sample1, &dst[0]);
-        rgb565_to_888(src[2].sample1, src[2].sample2, &dst[2]);
+        rgb565_to_555(src[0].sample1, src[1].sample1, &dst[0]);
+        rgb565_to_555(src[2].sample1, src[2].sample2, &dst[2]);
     }
 }
 
-void cameramode(uint8_t photoSize)
+void cameramode(uint8_t photoSize,uint8_t pixelFormat)
 {
     camera_config_t camera_config;
         camera_config.pin_d0 = 17;
@@ -818,19 +1033,19 @@ void cameramode(uint8_t photoSize)
         camera_config.pin_sscb_sda = 26;
         camera_config.pin_sscb_scl = 27;
         camera_config.pin_reset = 0;
-        camera_config .xclk_freq_hz = 20000000;//5000000;
+        camera_config .xclk_freq_hz = 20000000;
         camera_config.ledc_timer = LEDC_TIMER_0;
         camera_config.ledc_channel = LEDC_CHANNEL_0;
         camera_model_t camera_model;
-      esp_err_t err = camera_probe(&camera_config, &camera_model);
+    esp_err_t err = camera_probe(&camera_config, &camera_model);
     if(err != ESP_OK){
         ESP_LOGE(TAG, "Camera probe failed with error 0x%x", err);
         return;
     }
     if(camera_model == CAMERA_OV7725){
-        ESP_LOGE(TAG, "Detected OV7725 camera, using rgb555 bitmap format");
-        s_pixel_format = CAMERA_PF_RGB565;
-        camera_config.frame_size = (camera_framesize_t)photoSize;
+            ESP_LOGE(TAG, "Detected OV7725 camera");
+            s_pixel_format = (camera_pixelformat_t)pixelFormat;
+            camera_config.frame_size = (camera_framesize_t)photoSize;
     }else{
         ESP_LOGE(TAG, "Camera not supported");
         return;
@@ -842,4 +1057,24 @@ void cameramode(uint8_t photoSize)
         return;
     }
     ESP_LOGE(TAG,"Camera Ready");
+}
+
+void connectnet(const char* ssid,const char* password)
+{
+    initialise_wifi( ssid , password );
+    delay(2000);
+    ESP_LOGE(TAG, "Free heap: %u", xPortGetFreeHeapSize());
+    ESP_LOGE(TAG, "Camera demo ready");
+    ESP_LOGE(TAG, "open http://" IPSTR "/get for single frame", IP2STR(&s_ip_addr));
+    if(s_pixel_format == CAMERA_PF_GRAYSCALE){
+        ESP_LOGE(TAG, "open http://" IPSTR "/pgm for a single image/x-portable-graymap image", IP2STR(&s_ip_addr));
+    }
+    if(s_pixel_format == CAMERA_PF_JPEG){
+        ESP_LOGE(TAG, "open http://" IPSTR "/stream for multipart/x-mixed-replace stream (use with JPEGs)", IP2STR(&s_ip_addr));
+    }
+}
+
+void sendtonet(void)
+{
+    xTaskCreate(&http_server, "http_server", 2048, NULL, 5, NULL);
 }

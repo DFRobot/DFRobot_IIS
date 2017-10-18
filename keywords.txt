@@ -24,7 +24,9 @@ recorderControl	KEYWORD2
 initPlayer	KEYWORD2
 initRecorder	KEYWORD2
 record	KEYWORD2
-setFramesize	KEYWORD2
+setPhotoformat	KEYWORD2
+connectNet	KEYWORD2
+sendPhoto	KEYWORD2
 snapshot	KEYWORD2
 
 #######################################
@@ -41,4 +43,6 @@ QQVGA2	LITERAL1
 QICF	LITERAL1
 HQVGA	LITERAL1
 QVGA	LITERAL1
+GRAY	LITERAL1
+RGB	LITERAL1
 

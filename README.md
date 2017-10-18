@@ -107,13 +107,14 @@ int recordSound(const char *outputFilename);
 void recorderControl(uint8_t cmd);
 
 /*
- * @brief Set photo siez
+ * @brief Set photo format
  *
  * @param photoSize Size of photo
  *     Possible values: QQVGA(160x120) QQVGA2(128x160) QICF(176x144) HQVGA(240x160) QVGA(320x240)
- *
+ * @param pixelFormat Photo pixel format
+ *     Possible values: GRAY RGB
  */
-void setFramesize(uint8_t photoSize);
+void setPhotoformat(uint8_t photoSize,uint8_t pixelFormat);
 
 /*
  * @brief Take photo
@@ -121,6 +122,20 @@ void setFramesize(uint8_t photoSize);
  * @param *pictureFilename The name of the file to save picture
  */ 
 void snapshot(const char *pictureFilename);
+
+/*
+ * @brief Content  WIFI
+ *
+ * @param ssid     WIFI name
+ *
+ * @param password WIFI password
+ */
+void connectNet(const char* ssid,const char* password);
+ 
+/*
+ * @brief send photo to internet
+ */
+void sendPhoto(void);
 
 ```
 

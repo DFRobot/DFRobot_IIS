@@ -335,9 +335,19 @@ void DFRobot_IIS::record(const char *Filename)
     strcpy(outputFilename,SDfilename);
 }
 
-void DFRobot_IIS::setFramesize(uint8_t photoSize)
+void DFRobot_IIS::setPhotoformat(uint8_t photoSize,uint8_t pixelFormat)
 {
-    cameramode(photoSize);
+    cameramode(photoSize,pixelFormat);
+}
+
+void DFRobot_IIS::connectNet(const char* ssid,const char* password)
+{
+    connectnet( ssid , password );
+}
+
+void DFRobot_IIS::sendPhoto(void)
+{
+    sendtonet();
 }
 
 void DFRobot_IIS::snapshot(const char *Filename)
