@@ -13,15 +13,16 @@
 DFRobot_IIS iis;
 const int buttonPin = 16;
 int i=0; 
-
+const char* SSID    ="yourSSID"
+const char* PASSWORD="SSID password"
 void setup(){
     Serial.begin(115200);
     pinMode(buttonPin, INPUT);
     iis.SDCardInit();                                //SD card init
     iis.init(CAMERA);                                //Init Camera mode
-    iis.connectNet("DFROBOT_AP","12345678");         //Connect wifi
+    iis.connectNet(SSID,PASSWORD);                   //Connect wifi
     iis.setFreamsize(QVGA);                          //Set photo size QVGA:320x240
-    iis.setPixformat(GRAY);                          //Set pixelformat GRAYSCALE
+    iis.setPixformat(GRAYSCALE);                     //Set pixelformat GRAYSCALE
     iis.sendPhoto();                                 //Send photo to net
     delay(100);
     Serial.println("Ready to take photo");
