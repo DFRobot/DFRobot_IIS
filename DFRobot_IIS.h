@@ -63,13 +63,13 @@ extern "C" {
 #define STOP       3
 #define SET        4
 
-#define QQVGA   4
-#define QQVGA2  5
-#define QICF    6
-#define HQVGA   7
-#define QVGA    8
-#define RGB     0
-#define GRAY    2
+#define QQVGA     4
+#define QQVGA2    5
+#define QICF      6
+#define HQVGA     7
+#define QVGA      8
+#define RGB555    0
+#define GRAYSCALE 2
 
 typedef struct WAV_HEADER
 {
@@ -118,7 +118,8 @@ public:
     void muteSpeakers(void);
     void setHeadphonesVolume(uint8_t volume);
     void muteHeadphones(void);
-    void setPhotoformat(uint8_t photoSize,uint8_t pixelFormat);
+    uint8_t setFreamsize(uint8_t photoSize);
+    uint8_t setPixformat(uint8_t pixelFormat);
     void snapshot(const char *pictureFilename);
     void connectNet(const char* ssid,const char* password);
     void initPlayer();

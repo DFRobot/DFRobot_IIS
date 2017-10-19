@@ -107,14 +107,20 @@ int recordSound(const char *outputFilename);
 void recorderControl(uint8_t cmd);
 
 /*
- * @brief Set photo format
+ * @brief Set photo size
  *
  * @param photoSize Size of photo
  *     Possible values: QQVGA(160x120) QQVGA2(128x160) QICF(176x144) HQVGA(240x160) QVGA(320x240)
- * @param pixelFormat Photo pixel format
- *     Possible values: GRAY RGB
  */
-void setPhotoformat(uint8_t photoSize,uint8_t pixelFormat);
+void setFreamsize(uint8_t photoSize);
+
+/*
+ * @brief Set photo pixel format 
+ *
+ * @param pixelFormat Photo pixel format
+ *     Possible values: GRAYSCALE RGB555
+ */
+void setPixformat(uint8_t pixelFormat)
 
 /*
  * @brief Take photo

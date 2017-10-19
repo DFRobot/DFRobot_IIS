@@ -32,6 +32,9 @@ uint8_t  mark=STOP;
 uint8_t  rmark=STOP;
 uint8_t  Volume1=0;
 uint8_t  Volume2=0;
+uint8_t  Size=8;
+uint8_t  Pixel=0;
+uint8_t  set=0;
 
 bool DFRobot_IIS::SDCardInit(void)
 {
@@ -335,9 +338,26 @@ void DFRobot_IIS::record(const char *Filename)
     strcpy(outputFilename,SDfilename);
 }
 
-void DFRobot_IIS::setPhotoformat(uint8_t photoSize,uint8_t pixelFormat)
+uint8_t DFRobot_IIS::setFreamsize(uint8_t photoSize)
 {
-    cameramode(photoSize,pixelFormat);
+    Size = photoSize;
+    if(set){
+        cameramode(Size,Pixel);
+    }else{
+        set=1;
+    }
+    return Size;
+}
+
+uint8_t DFRobot_IIS::setPixformat(uint8_t pixelFormat)
+{
+    Pixel = pixelFormat;
+    if(set){
+        cameramode(Size,Pixel);
+    }else{
+        set=1;
+    }
+    return Pixel;
 }
 
 void DFRobot_IIS::connectNet(const char* ssid,const char* password)

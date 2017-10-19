@@ -18,9 +18,10 @@ void setup(){
     Serial.begin(115200);
     pinMode(buttonPin, INPUT);
     iis.SDCardInit();                                //SD card init
+    iis.init(CAMERA);                                //Init Camera mode
     iis.connectNet("DFROBOT_AP","12345678");         //Connect wifi
-    iis.init(CAMERA);                                //Init Camera mode and SD card
-    iis.setPhotoformat(QVGA,GRAY);                   //Set photo size QVGA:320x240 pixelformat GRAYSCALE
+    iis.setFreamsize(QVGA);                          //Set photo size QVGA:320x240
+    iis.setPixformat(GRAY);                          //Set pixelformat GRAYSCALE
     iis.sendPhoto();                                 //Send photo to net
     delay(100);
     Serial.println("Ready to take photo");
