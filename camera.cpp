@@ -630,7 +630,7 @@ static void get_bmp(const char *pictureFilename)
     ESP_LOGD(TAG, "write file");
     int r,g,b,gry,j;
     for(j=0;j<s_state->fb_size;j+=2)
-    {     
+    {
         if(j<112000){
             b=s_state->fb[j];
             g=s_state->fb[j+1];
