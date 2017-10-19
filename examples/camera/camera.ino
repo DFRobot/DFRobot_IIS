@@ -13,8 +13,8 @@
 DFRobot_IIS iis;
 const int buttonPin = 16;
 int i=0; 
-const char* SSID    ="yourSSID"
-const char* PASSWORD="SSID password"
+const char* SSID    ="yourSSID";
+const char* PASSWORD="SSID password";
 void setup(){
     Serial.begin(115200);
     pinMode(buttonPin, INPUT);
