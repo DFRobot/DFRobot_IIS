@@ -628,7 +628,17 @@ static void get_bmp(const char *pictureFilename)
     ESP_LOGD(TAG, "set head");
     fwrite(&(bmp->header.BfType) , 1, 54 , bmp->fp);
     ESP_LOGD(TAG, "write file");
-    int r,g,b,gry,j;
+    int g,b,j=0;
+    if(s_state->fb_bytes_per_pixel == 1){
+        for(int i=0;i<256;i++){
+            fwrite(&i , 1, 1, bmp->fp);
+            fwrite(&i , 1, 1, bmp->fp);
+            fwrite(&i , 1, 1, bmp->fp);
+            fwrite(&j , 1, 1, bmp->fp);
+        }
+        bmp->header.BfSize+=1024;
+        bmp->header.BiSizeTmage+=1024;
+    }
     for(j=0;j<s_state->fb_size;j+=2)
     {
         if(j<112000){
