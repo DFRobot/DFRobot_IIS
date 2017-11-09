@@ -607,9 +607,9 @@ static void get_bmp(const char *pictureFilename)
         printf("BMP_OutputOpen(): Unable to allocate BMP struct.\n");
     }
     ESP_LOGD(TAG, "open file");
-    bmp->header.BfType=19778;   
-    ESP_LOGD(TAG, "set BM");   
-    bmp->header.BfSize=54;    
+    bmp->header.BfType=19778;
+    ESP_LOGD(TAG, "set BM");
+    bmp->header.BfSize=54;
     bmp->header.BfReserved1=0;
     bmp->header.BfReserved2=0;
     bmp->header.BfOffBits=54;

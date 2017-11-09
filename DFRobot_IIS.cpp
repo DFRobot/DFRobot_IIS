@@ -35,6 +35,8 @@ uint8_t  Volume2=0;
 uint8_t  Size=8;
 uint8_t  Pixel=0;
 uint8_t  set=0;
+static xTaskHandle  xPlayWAV     = NULL;
+static xTaskHandle  xRecordSound = NULL;
 
 bool DFRobot_IIS::SDCardInit(void)
 {
@@ -68,7 +70,9 @@ bool DFRobot_IIS::init(uint8_t mode)
 
 void DFRobot_IIS::setSpeakersVolume(uint8_t volume)
 {
-    mark=SET;
+    if(mark == PLAY){
+        mark=SET;
+    }
     if(volume>99){
         Volume2=99;
     }
@@ -76,11 +80,15 @@ void DFRobot_IIS::setSpeakersVolume(uint8_t volume)
         Volume2=0;
     }
     Volume1=(volume*64/100);
-    I2C_Master_Init();
-    I2C_WriteNAU8822(54, Volume1);
-    I2C_WriteNAU8822(55, Volume1+256);
-    i2c_driver_delete(I2C_MASTER_NUM);
-    mark=PLAY;
+    if(mark != PAUSE){
+        I2C_Master_Init();
+        I2C_WriteNAU8822(54, Volume1);
+        I2C_WriteNAU8822(55, Volume1+256);
+        i2c_driver_delete(I2C_MASTER_NUM);
+    }
+    if(mark == SET){
+        mark=PLAY;
+    }
 }
 
 void DFRobot_IIS::muteSpeakers(void)
@@ -95,7 +103,9 @@ void DFRobot_IIS::muteSpeakers(void)
 
 void DFRobot_IIS::setHeadphonesVolume(uint8_t volume)
 {
-    mark=SET;
+    if(mark == PLAY){
+        mark=SET;
+    }
     if(volume>99){
         Volume2=99;
     }
@@ -103,11 +113,15 @@ void DFRobot_IIS::setHeadphonesVolume(uint8_t volume)
         Volume2=0;
     }
     Volume2=(volume*64/100);
-    I2C_Master_Init();
-    I2C_WriteNAU8822(52, Volume2);
-    I2C_WriteNAU8822(53, Volume2+256);
-    i2c_driver_delete(I2C_MASTER_NUM);
-    mark=PLAY;
+    if(mark != PAUSE){
+        I2C_Master_Init();
+        I2C_WriteNAU8822(52, Volume2);
+        I2C_WriteNAU8822(53, Volume2+256);
+        i2c_driver_delete(I2C_MASTER_NUM);
+    }
+    if(mark == SET){
+        mark=PLAY;
+    }
 }
 
 void DFRobot_IIS::muteHeadphones(void)
@@ -128,38 +142,38 @@ void playWAV(void *arg)
         HANDLE_WAV wav = (HANDLE_WAV)calloc(1, sizeof(struct WAV));
         if(wav == NULL){
             printf("playWAV(): Unable to allocate WAV struct.\n");
-            return;
+            break;
         }
         vTaskDelay(100);
         wav->fp = fopen(filename, "rb");
         if(wav->fp == NULL){
             printf("playWAV(): Unable to open wav file. %s\n", filename);
-            return;
+            break;
         }
         if(fread(&(wav->header.riffType), 1, 4, wav->fp) != 4){
             printf("playWAV(): couldn't read RIFF_ID\n");
-            return;  /* bad error "couldn't read RIFF_ID" */
+            break;  /* bad error "couldn't read RIFF_ID" */
         }
         if(strncmp("RIFF", wav->header.riffType, 4)){
             printf("playWAV(): RIFF descriptor not found.\n") ;
-            return;
+            break;
         }
         fread(&(wav->header.riffSize), 4, 1, wav->fp);
         if(fread(&wav->header.waveType, 1, 4, wav->fp) !=4){
             printf("playWAV(): couldn't read format\n");
-            return;  /* bad error "couldn't read format" */
+            break;  /* bad error "couldn't read format" */
         }
         if(strncmp("WAVE", wav->header.waveType, 4)){
             printf("playWAV(): WAVE chunk ID not found.\n") ;
-            return;
+            break;
         }
         if(fread(&(wav->header.formatType), 1, 4, wav->fp) != 4){
             printf("playWAV(): couldn't read format_ID\n");
-            return;  /* bad error "couldn't read format_ID" */
+            break;  /* bad error "couldn't read format_ID" */
         }
         if(strncmp("fmt", wav->header.formatType, 3)){
             printf("playWAV(): fmt chunk format not found.\n") ;
-            return;
+            break;
         }
         fread(&(wav->header.formatSize), 4, 1, wav->fp);
         fread(&(wav->header.compressionCode), 2, 1, wav->fp);
@@ -231,11 +245,12 @@ void playWAV(void *arg)
         free(wav);
         mark=STOP;
     }
+    vTaskDelete(xPlayWAV);
 }
 
 void DFRobot_IIS::initPlayer(){
     mark=STOP;
-    xTaskCreate(playWAV, "playWAV",2048, NULL, 5, NULL);
+    xTaskCreate(&playWAV, "playWAV",2048, NULL, 5, &xPlayWAV);
 }
 
 void DFRobot_IIS::playerControl(uint8_t cmd)
@@ -266,12 +281,12 @@ void recordSound(void *arg)
         unsigned int size = 0;
         if(wav == NULL){
             printf("recordSound(): Unable to allocate WAV struct.\n");
-            return ;
+            break;
         }
         wav->fp = fopen(outputFilename, "wb");
         if(wav->fp == NULL){
             printf("recordSound(): unable to create file %s\n", outputFilename);
-            return ;
+            break;
         }
         strcpy(wav->header.riffType, "RIFF");
         wav->header.riffSize = 0;  
@@ -314,12 +329,13 @@ void recordSound(void *arg)
         i2s_driver_uninstall(I2S_NUM_0);
         vTaskDelay(1000);
     }
+    vTaskDelete(xRecordSound);
 }
 
 void DFRobot_IIS::initRecorder()
 {
     rmark=STOP;
-    xTaskCreate(recordSound, "recordSound",2048, NULL, 5, NULL);
+    xTaskCreate(&recordSound, "recordSound",2048, NULL, 5, &xRecordSound);
 }
 
 void DFRobot_IIS::recorderControl(uint8_t cmd)

@@ -16,7 +16,7 @@ enum Status{
     ePrepare,
     eRecording,
     eStop
-}state=ePrepare;
+}eState=ePrepare;
 
 void setup(){
     Serial.begin(115200);
@@ -28,29 +28,29 @@ void setup(){
 }
 
 void loop(){
-    if((!digitalRead(buttonPin))&&state==ePrepare){
+    if((!digitalRead(buttonPin))&&eState==ePrepare){
         while((!digitalRead(buttonPin))){
             delay(10);
         }
         iis.recorderControl(BEGIN);                // Begin recording
         Serial.println("Recording");
-        state=eRecording;
+        eState=eRecording;
     }
     delay(100);
-    if((!digitalRead(buttonPin))&&state==eRecording){
+    if((!digitalRead(buttonPin))&&eState==eRecording){
         while((!digitalRead(buttonPin))){
             delay(10);
         }
         iis.recorderControl(STOP);                 // eStop recording
         Serial.println("Stop and save data");
-        state=eStop;
+        eState=eStop;
     }  
-    if((!digitalRead(buttonPin))&&state==eStop){
+    if((!digitalRead(buttonPin))&&eState==eStop){
         while((!digitalRead(buttonPin))){
             delay(10);
         }
         iis.record("/record2.WAV");                // Change file name
-        state=ePrepare;
+        eState=ePrepare;
     }
     delay(100);
 }
