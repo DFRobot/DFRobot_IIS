@@ -25,7 +25,7 @@
 #include "camera.h"
 #include "SD_MMC.h"
 
-char     filename[30];
+char     filename[100];
 char     pictureFilename[30];
 char     outputFilename[30];
 uint8_t  mark=STOP;
@@ -432,6 +432,7 @@ void I2C_Setup_NAU8822_play()
     I2C_WriteNAU8822(5,  0x000);
     I2C_WriteNAU8822(6,  0x00C);
     I2C_WriteNAU8822(7,  0x000);
+    I2C_WriteNAU8822(13,0x09f);
     I2C_WriteNAU8822(10, 0x008);
     I2C_WriteNAU8822(14, 0x108);
     I2C_WriteNAU8822(15, 0x0FF);
@@ -470,16 +471,17 @@ void I2C_Setup_NAU8822_record()
     I2C_WriteNAU8822(4,  0x010);
     I2C_WriteNAU8822(5,  0x000);
     I2C_WriteNAU8822(6,  0x00D);
-    I2C_WriteNAU8822(7,  0x006);
+    I2C_WriteNAU8822(7,  0x007);
+    I2C_WriteNAU8822(9 ,0x150);
     I2C_WriteNAU8822(10, 0x008);
     I2C_WriteNAU8822(14, 0x108);
-    I2C_WriteNAU8822(15, 0x1FF);
+    I2C_WriteNAU8822(15, 0x0FF);
     I2C_WriteNAU8822(16, 0x1FF);
     I2C_WriteNAU8822(44, 0x033);
     I2C_WriteNAU8822(45, 0x0bf);
     I2C_WriteNAU8822(46, 0x1bf);
-    I2C_WriteNAU8822(47, 0x175);
-    I2C_WriteNAU8822(48, 0x175);
+    I2C_WriteNAU8822(47, 0x075);
+    I2C_WriteNAU8822(48, 0x075);
     I2C_WriteNAU8822(50, 0x001);
     I2C_WriteNAU8822(51, 0x001);
     I2C_WriteNAU8822(52, 0x040);
@@ -529,7 +531,7 @@ void I2S_Master_Init(uint32_t SAMPLE_RATE,i2s_bits_per_sample_t BITS_PER_SAMPLE)
         .bck_io_num   = 5,
         .ws_io_num    = 17,
         .data_out_num = 0,
-        .data_in_num  = 39
+        .data_in_num  = 36
     };
     i2s_driver_install(I2S_NUM_0, &i2s_config, 0, NULL);
     i2s_set_pin(I2S_NUM_0, &pin_config);
@@ -551,7 +553,7 @@ void I2S_Slave_Init(uint32_t SAMPLE_RATE,i2s_bits_per_sample_t BITS_PER_SAMPLE)
         .bck_io_num   = 5,
         .ws_io_num    = 17,
         .data_out_num = 0,
-        .data_in_num  = 39
+        .data_in_num  = 36
     };
     i2s_driver_install(I2S_NUM_0, &i2s_config, 0, NULL);
     i2s_set_pin(I2S_NUM_0, &pin_config);
