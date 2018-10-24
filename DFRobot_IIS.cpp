@@ -208,10 +208,10 @@ void playWAV(void *arg)
                 buf += bytes_written;
                 if(mark==PAUSE){
                     I2C_Master_Init();
-                    I2C_WriteNAU8822(52, 0x040);
-                    I2C_WriteNAU8822(53, 0x040);
-                    I2C_WriteNAU8822(54, 0x040);
-                    I2C_WriteNAU8822(55, 0x040);
+                    I2C_WriteNAU8822(52, 0x140);
+                    I2C_WriteNAU8822(53, 0x140);
+                    I2C_WriteNAU8822(54, 0x140);
+                    I2C_WriteNAU8822(55, 0x140);
                     i2c_driver_delete(I2C_MASTER_NUM);
                     vTaskDelay(500);
                     while(mark==PAUSE){
@@ -231,10 +231,10 @@ void playWAV(void *arg)
             }
             if(mark==STOP){
                 I2C_Master_Init();
-                I2C_WriteNAU8822(52, 0x040);
-                I2C_WriteNAU8822(53, 0x040);
-                I2C_WriteNAU8822(54, 0x040);
-                I2C_WriteNAU8822(55, 0x040);
+                I2C_WriteNAU8822(52, 0x140);
+                I2C_WriteNAU8822(53, 0x140);
+                I2C_WriteNAU8822(54, 0x140);
+                I2C_WriteNAU8822(55, 0x140);
                 i2c_driver_delete(I2C_MASTER_NUM);
                 break;
             }
@@ -260,7 +260,6 @@ void DFRobot_IIS::playerControl(uint8_t cmd)
         vTaskDelay(500);
     }
     mark=cmd;
-
 }
 
 void DFRobot_IIS::playMusic(const char *Filename)
@@ -432,7 +431,7 @@ void I2C_Setup_NAU8822_play()
     I2C_WriteNAU8822(5,  0x000);
     I2C_WriteNAU8822(6,  0x00C);
     I2C_WriteNAU8822(7,  0x000);
-    I2C_WriteNAU8822(13,0x09f);
+    I2C_WriteNAU8822(13, 0x09f);
     I2C_WriteNAU8822(10, 0x008);
     I2C_WriteNAU8822(14, 0x108);
     I2C_WriteNAU8822(15, 0x0FF);
@@ -441,7 +440,7 @@ void I2C_Setup_NAU8822_play()
     I2C_WriteNAU8822(46, 0x1bf);
     I2C_WriteNAU8822(47, 0x175);
     I2C_WriteNAU8822(48, 0x175);
-    I2C_WriteNAU8822(50, 0x001);
+    I2C_WriteNAU8822(50, 0x1DC );
     I2C_WriteNAU8822(51, 0x001);
     if(Volume2 != 0){
         I2C_WriteNAU8822(52, Volume2);
@@ -472,7 +471,7 @@ void I2C_Setup_NAU8822_record()
     I2C_WriteNAU8822(5,  0x000);
     I2C_WriteNAU8822(6,  0x00D);
     I2C_WriteNAU8822(7,  0x007);
-    I2C_WriteNAU8822(9 ,0x150);
+    I2C_WriteNAU8822(9 , 0x150);
     I2C_WriteNAU8822(10, 0x008);
     I2C_WriteNAU8822(14, 0x108);
     I2C_WriteNAU8822(15, 0x0FF);
