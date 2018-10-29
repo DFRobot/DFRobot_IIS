@@ -439,8 +439,8 @@ void I2C_Setup_NAU8822_play()
     I2C_WriteNAU8822(45, 0x0bf);
     I2C_WriteNAU8822(46, 0x1bf);
     I2C_WriteNAU8822(47, 0x175);
-    I2C_WriteNAU8822(48, 0x175);
-    I2C_WriteNAU8822(50, 0x1DC );
+    I2C_WriteNAU8822(49, 0x042);
+    I2C_WriteNAU8822(50, 0x1DD);
     I2C_WriteNAU8822(51, 0x001);
     if(Volume2 != 0){
         I2C_WriteNAU8822(52, Volume2);
