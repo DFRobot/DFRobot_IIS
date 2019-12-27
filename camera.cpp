@@ -42,9 +42,6 @@ extern "C" {
 #include "esp_event_loop.h"
 #include "esp_log.h"
 #define CONFIG_OV7725_SUPPORT 1
-#if CONFIG_OV2640_SUPPORT
-#include "ov2640.h"
-#endif
 #if CONFIG_OV7725_SUPPORT
 #include "ov7725.h"
 #endif
@@ -334,12 +331,6 @@ esp_err_t camera_probe(const camera_config_t* config, camera_model_t* out_camera
             id->PID, id->VER, id->MIDH, id->MIDL);
 
     switch (id->PID){
-#if CONFIG_OV2640_SUPPORT
-        case OV2640_PID:
-            *out_camera_model = CAMERA_OV2640;
-            ov2640_init(&s_state->sensor);
-            break;
-#endif
 #if CONFIG_OV7725_SUPPORT
         case OV7725_PID:
             *out_camera_model = CAMERA_OV7725;
