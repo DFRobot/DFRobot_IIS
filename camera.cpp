@@ -8,7 +8,7 @@
 #include "freertos/task.h"
 #include "freertos/semphr.h"
 #include "freertos/Event_groups.h"
-#include "rom/lldesc.h"
+#include "esp32/rom/lldesc.h"
 #include "soc/soc.h"
 #include "soc/gpio_sig_map.h"
 #include "soc/i2s_reg.h"
@@ -23,7 +23,7 @@ extern "C" {
 #include "esp_log.h"
 #include "esp_system.h"
 #include "esp_wifi.h"
-#include "esp_event_loop.h"
+#include "esp_event.h"
 #include "esp_log.h"
 #include "nvs_flash.h"
 #include "driver/gpio.h"
@@ -39,7 +39,7 @@ extern "C" {
 #include "bmp.h"
 #include "SDcard.h"
 #include "sys/socket.h"
-#include "esp_event_loop.h"
+#include "esp_event.h"
 #include "esp_log.h"
 #define CONFIG_OV7725_SUPPORT 1
 #if CONFIG_OV7725_SUPPORT
@@ -83,7 +83,7 @@ const static char http_stream_boundary[] = "--123456789000000000000987654321\r\n
 
 static EventGroupHandle_t wifi_event_group;
 const int CONNECTED_BIT = BIT0;
-static ip4_addr_t s_ip_addr;
+static esp_ip4_addr_t s_ip_addr;
 
 static esp_err_t event_handler(void *ctx, system_event_t *event)
 {
@@ -237,8 +237,11 @@ static void http_server(void *pvParameters)
     netconn_bind(conn, NULL, 80);
     netconn_listen(conn);
     do {
+
+
         err = netconn_accept(conn, &newconn);
         if (err == ERR_OK) {
+            //Serial.println("request");
             http_server_netconn_serve(newconn);
             netconn_delete(newconn);
         }
@@ -287,7 +290,7 @@ static size_t i2s_bytes_per_sample(i2s_sampling_mode_t mode)
 esp_err_t camera_probe(const camera_config_t* config, camera_model_t* out_camera_model)
 {
     if(s_state != NULL){
-        ESP_LOGE(TAG, "s_state != NULL");
+        Serial.println("s_state != NULL");
         return ESP_ERR_INVALID_STATE;
     }
 
@@ -321,6 +324,7 @@ esp_err_t camera_probe(const camera_config_t* config, camera_model_t* out_camera
     }
     s_state->sensor.slv_addr = slv_addr;
     ESP_LOGE(TAG, "Detected camera at address=0x%02x", slv_addr);
+    //Serial.println(slv_addr);
     sensor_id_t* id = &s_state->sensor.id;
     id->PID = SCCB_Read(slv_addr, REG_PID);
     id->VER = SCCB_Read(slv_addr, REG_VER);
@@ -329,19 +333,18 @@ esp_err_t camera_probe(const camera_config_t* config, camera_model_t* out_camera
     vTaskDelay(10 / portTICK_PERIOD_MS);
     ESP_LOGE(TAG, "Camera PID=0x%02x VER=0x%02x MIDL=0x%02x MIDH=0x%02x",
             id->PID, id->VER, id->MIDH, id->MIDL);
-
     switch (id->PID){
 #if CONFIG_OV7725_SUPPORT
         case OV7725_PID:
             *out_camera_model = CAMERA_OV7725;
-            ESP_LOGE(TAG, "init 0v7725");
+            Serial.println("init 0v7725");
             ov7725_init(&s_state->sensor);
             break;
 #endif
         default:
             id->PID = 0;
             *out_camera_model = CAMERA_UNKNOWN;
-            ESP_LOGE(TAG, "Detected camera not supported.");
+            Serial.println("Detected camera not supported.");
             return ESP_ERR_CAMERA_NOT_SUPPORTED;
     }
     ESP_LOGE(TAG, "Doing SW reset of sensor");
@@ -576,6 +579,7 @@ esp_err_t camera_run(const char *pictureFilename)
     struct timeval tv_start;
     gettimeofday(&tv_start, NULL);
 #ifndef _NDEBUG
+    
     memset(s_state->fb, 0, s_state->fb_size);
 #endif // _NDEBUG
     i2s_run();
@@ -585,6 +589,7 @@ esp_err_t camera_run(const char *pictureFilename)
     struct timeval tv_end;
     gettimeofday(&tv_end, NULL);
     int time_ms = (tv_end.tv_sec - tv_start.tv_sec) * 1000 + (tv_end.tv_usec - tv_start.tv_usec) / 1000;
+    ESP_LOGI(TAG, "Frame %d done in %d ms", s_state->frame_count, time_ms);
     ESP_LOGI(TAG, "Frame %d done in %d ms", s_state->frame_count, time_ms);
     s_state->frame_count++;
     return ESP_OK;
@@ -749,6 +754,8 @@ static void i2s_init()
             (gpio_num_t)config->pin_href,
             (gpio_num_t)config->pin_pclk
     };
+
+
     gpio_config_t conf;
             conf.mode = GPIO_MODE_INPUT;
             conf.pull_up_en = GPIO_PULLUP_ENABLE;
@@ -1048,7 +1055,7 @@ void cameramode(uint8_t photoSize,uint8_t pixelFormat)
             s_pixel_format = (camera_pixelformat_t)pixelFormat;
             camera_config.frame_size = (camera_framesize_t)photoSize;
     }else{
-        ESP_LOGE(TAG, "Camera not supported");
+        ESP_LOGE(TAG, "Camera init failed with error 0x%x", err);
         return;
     }
     camera_config.pixel_format = s_pixel_format;
@@ -1067,6 +1074,14 @@ void connectnet(const char* ssid,const char* password)
     ESP_LOGE(TAG, "Free heap: %u", xPortGetFreeHeapSize());
     ESP_LOGE(TAG, "Camera demo ready");
     ESP_LOGE(TAG, "open http://" IPSTR "/get for single frame", IP2STR(&s_ip_addr));
+    Serial.print("open http://");
+    Serial.print((uint32_t)esp_ip4_addr1_16(&s_ip_addr));
+    Serial.print(".");
+    Serial.print((uint32_t)esp_ip4_addr2_16(&s_ip_addr));
+    Serial.print(".");
+    Serial.print((uint32_t)esp_ip4_addr3_16(&s_ip_addr));
+    Serial.print(".");
+    Serial.println((uint32_t)esp_ip4_addr4_16(&s_ip_addr));
     if(s_pixel_format == CAMERA_PF_GRAYSCALE){
         ESP_LOGE(TAG, "open http://" IPSTR "/pgm for a single image/x-portable-graymap image", IP2STR(&s_ip_addr));
     }

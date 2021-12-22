@@ -19,7 +19,7 @@
 #include <string.h>
 #include <math.h>
 #include <string.h>
-#include "rom/gpio.h"
+#include "esp32/rom/gpio.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/i2s.h"
@@ -47,12 +47,12 @@ extern "C" {
 #define ESP_SLAVE_ADDR              (0X34) 
 #define ACK_CHECK_EN                0x1
 #define ACK_CHECK_DIS               0x0
-#define I2C_MASTER_NUM              I2C_NUM_1
+#define I2C_MASTER_NUM              0
 #define I2C_MASTER_SCL_IO           GPIO_NUM_27
 #define I2C_MASTER_SDA_IO           GPIO_NUM_26
 #define I2C_MASTER_TX_BUF_DISABLE   0
 #define I2C_MASTER_RX_BUF_DISABLE   0
-#define I2C_MASTER_FREQ_HZ          600
+#define I2C_MASTER_FREQ_HZ          100000
 
 #define AUDIO      0
 #define CAMERA     1

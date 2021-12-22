@@ -203,7 +203,8 @@ void playWAV(void *arg)
             char *buf=(char *)&wav->header.test;
             int bytes_left=800,bytes_written = 0;
             while(bytes_left > 0){
-                bytes_written = i2s_write_bytes(I2S_NUM_0 , buf , bytes_left , 0);
+              //  bytes_written = i2s_write(I2S_NUM_0 , buf ,((bits+8)/16)*SAMPLE_PER_CYCLE*4, bytes_left , 0);
+				//i2s_write(I2S_NUM, samples_data, ((bits+8)/16)*SAMPLE_PER_CYCLE*4, &i2s_bytes_write, 100);
                 bytes_left -= bytes_written;
                 buf += bytes_written;
                 if(mark==PAUSE){
@@ -315,7 +316,7 @@ void recordSound(void *arg)
         I2S_Slave_Init(32000,I2S_BITS_PER_SAMPLE_16BIT);
         vTaskDelay(1000);
         while(rmark!=STOP){
-            bytes_written = i2s_read_bytes(I2S_NUM_0 ,buf, 800 , 100);
+           // bytes_written = i2s_read_bytes(I2S_NUM_0 ,buf, 800 , 100);
             wav->header.dataSize+=fwrite(buf, 1, bytes_written , wav->fp);
         }
         wav->header.riffSize =wav->header.dataSize+44;
@@ -388,9 +389,12 @@ void DFRobot_IIS::sendPhoto(void)
 void DFRobot_IIS::snapshot(const char *Filename)
 {
     char SDfilename[30]="/sdcard";
+	//Serial.println("1");
     strcat(SDfilename,Filename);
+	//Serial.println("2");
     strcpy(pictureFilename,SDfilename);
-    camera_run(pictureFilename);
+    //Serial.println("3");
+	camera_run(pictureFilename);
 }
 
 void I2C_Master_Init()
@@ -398,13 +402,17 @@ void I2C_Master_Init()
     i2c_port_t i2c_master_port = I2C_MASTER_NUM;
     i2c_config_t conf;
     conf.mode             = I2C_MODE_MASTER;
-    conf.sda_io_num       = I2C_MASTER_SDA_IO;
+    conf.sda_io_num       = (gpio_num_t)26;
     conf.sda_pullup_en    = GPIO_PULLUP_ENABLE;
-    conf.scl_io_num       = I2C_MASTER_SCL_IO;
+    conf.scl_io_num       = (gpio_num_t)27;
     conf.scl_pullup_en    = GPIO_PULLUP_ENABLE;
     conf.master.clk_speed = I2C_MASTER_FREQ_HZ ;
+    //Serial.println( conf.clk_flags);
+    conf.clk_flags = 0;
     i2c_param_config(i2c_master_port, &conf);
+    
     i2c_driver_install(i2c_master_port, conf.mode,I2C_MASTER_RX_BUF_DISABLE,I2C_MASTER_TX_BUF_DISABLE, 0);
+    //Serial.println("down");
 }
 
 void I2C_WriteNAU8822(int8_t addr, int16_t data)
