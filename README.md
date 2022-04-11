@@ -1,147 +1,169 @@
-# FireBeetle Covers-Camera&Audio Media Board
+# DFRobot_IIS
+- [中文版](./README_CN.md)
 
-ESP32 Audio&Video Board with IIS 
-
-![SVG1](https://raw.githubusercontent.com/DFRobot/binaryfiles/master/DFR0498/DFR0498svg1.png)
----------------------------------------------------------
-
-# DFRobot_IIS Library for Arduino
 Provides an Arduino library for FireBeetle Covers-Camera&Audio Media Board 
+
+![产品效果图片](./resources/images/DFR0498.jpg)
+
+## Product Link（https://www.dfrobot.com/product-1720.html）
+
+    DFR0498：FireBeetle Covers-Camera&Audio Media Board
+
 ## Table of Contents
 
 * [Summary](#summary)
+* [Installation](#installation)
 * [Methods](#methods)
-* [Compatibility](#Compatibility)
+* [Compatibility](#compatibility)
 * [History](#history)
 * [Credits](#credits)
-<snippet>
-<content>
 
 ## Summary
 
 The library is used to Play music file from SD card,Record sound and save in SD card,take photo and save in SD card
+## Installation
+
+To use this library, download the library file and paste it into the \Arduino\ Libraries directory, then open the examples folder and run the demo in that folder.
+
 
 ## Methods
 
 ```C++
 
-/*
- * @brief Init SD card
- */
-void SDCardInit(void);
+  /**
+   * @fn init
+   * @brief Init function
+   * @details Initialize I2S mode, I2S can be used as audio and camera controller in esp32
+   * @param mode I2S mode, AUDIO or CAMERA 
+   * @return Data of bool type
+   * @retval true Init succeeded
+   * @retval false Init failed
+   */
+  bool init(uint8_t mode);
 
-/*
- * @brief Set operational mode 
- *
- * @param mode Work mode settings
- *     AUDIO:Audio mode 
- *     CAMERA:Camera mode
- */
-void init(uint8_t mode);
+  /**
+   * @fn SDCardInit
+   * @brief Mount SD card
+   * @return Data of bool type
+   * @retval true Init succeeded
+   * @retval false Init failed
+   */
+  bool SDCardInit(void);
 
-/*
- * @brief Set speakers volume in when play music
- *
- * @param volume Set volume from 0 to 99
- */
-void setSpeakersVolume(uint8_t volume);
+  /**
+   * @fn sendPhoto
+   * @brief Send out the photo obtained from the camera via network
+   */
+  void sendPhoto(void);
 
-/*
- * @brief Set headphones volume in when play music
- *
- * @param volume Set volume from 0 to 99
- */
-void setHeadphonesVolume(uint8_t volume);
+  /**
+   * @fn setSpeakersVolume
+   * @brief Set speakers volume
+   * @param volume Volume, range 0-99
+   */
+  void setSpeakersVolume(uint8_t volume);
+  
+  /**
+   * @fn muteSpeakers
+   * @brief Mute speakers
+   */
+  void muteSpeakers(void);
 
-/*
- * @brief Set speakers in mute mode
- */
-void muteSpeakers(void);
+  /**
+   * @fn setHeadphonesVolume
+   * @brief Set headphones volume
+   * @param volume Volume, range 0-99
+   */
+  void setHeadphonesVolume(uint8_t volume);
+  
+  /**
+   * @fn muteHeadphones
+   * @brief Mute headphones
+   */
+  void muteHeadphones(void);
+  
+  /**
+   * @fn setFreamsize
+   * @brief Set camera pixel
+   * @param photoSize  optional (QQVGA,QQVGA2,QICF,HQVGA,QVGA,RGB555,GRAYSCALE)
+   * @return Return the set pixel
+   */
+  uint8_t setFreamsize(uint8_t photoSize);
 
-/*
- * @brief Set headphones in mute mode
- */
-void muteHeadphones(void);
+  /**
+   * @fn setPixformat
+   * @brief Set color depth
+   * @param pixelFormat  RGB555(RGB565 true color), GRAYSCALE(grayscale image)
+   * @return Return the set color depth
+   */
+  uint8_t setPixformat(uint8_t pixelFormat);
 
-/*
- * @brief Init music player
- */
-void initPlayer();
+  /**
+   * @fn snapshot
+   * @brief Take photo
+   * @param pictureFilename The name of the file to save picture
+   */ 
+  void snapshot(const char *pictureFilename);
+  
+  /**
+   * @fn connectNet
+   * @brief Connect to WIFI
+   * @param ssid     WIFI name
+   * @param password WIFI password
+   */ 
+  void connectNet(const char* ssid,const char* password);
 
-/*
- * @brief Play music
- *
- * @param *filename The name of the file used to play
- */
-int playMusic(const char *filename);
+  /**
+   * @fn initPlayer
+   * @brief init music player
+   */
+  void initPlayer();
+  
+  /**
+   * @fn initRecorder
+   * @brief Init recorder
+   */
+  void initRecorder();
 
-/*
- * @brief Control the music player
- *
- * @param cmd Command to control music player
- *     PLAY   Begin or continue play music
- *     PAUSE  Pause play music
- *     STOP   Stop play music
- */
-void playerControl(uint8_t cmd);
+  /**
+   * @fn playMusic
+   * @brief Play music
+   * @param filename The name of the file used to play
+   */
+  void playMusic(const char *Filename);
 
-/*
- * @brief Init Recorder
- */
-void initRecorder();
+  /**
+   * @fn record
+   * @brief record sound
+   * @param filename he name of the file to save record
+   */
+  void record(const char *Filename);
 
-/*
- * @brief Record sound
- *
- * @param *outputFilename The name of the file to save record
- */ 
-int recordSound(const char *outputFilename);
+  /**
+   * @fn playerControl
+   * @brief Control the music player
+   * @param cmd Command to control music player
+   * @n    PLAY   Begin or continue play music
+   * @n    PAUSE  Pause play music
+   * @n    STOP   Stop play music
+   */
+  void playerControl(uint8_t cmd);
 
-/*
- * @brief Control the recorder
- *
- * @param cmd Command to control recorder
- *     BEGIN  Begin recording
- *     STOP   Stop recording
- */
-void recorderControl(uint8_t cmd);
-
-/*
- * @brief Set photo size
- *
- * @param photoSize Size of photo
- *     Possible values: QQVGA(160x120) QQVGA2(128x160) QICF(176x144) HQVGA(240x160) QVGA(320x240)
- */
-void setFreamsize(uint8_t photoSize);
-
-/*
- * @brief Set photo pixel format 
- *
- * @param pixelFormat Photo pixel format
- *     Possible values: GRAYSCALE RGB555
- */
-void setPixformat(uint8_t pixelFormat)
-
-/*
- * @brief Take photo
- *
- * @param *pictureFilename The name of the file to save picture
- */ 
-void snapshot(const char *pictureFilename);
-
-/*
- * @brief Content  WIFI
- *
- * @param ssid     WIFI name
- *
- * @param password WIFI password
- */
-void connectNet(const char* ssid,const char* password);
- 
-/*
- * @brief send photo to internet
- */
-void sendPhoto(void);
+  /**
+   * @fn recorderControl
+   * @brief Control the recorder
+   * @param cmd Command to control recorder
+   * @n   BEGIN  Begin recording
+   * @n   STOP   Stop recording
+   */
+  void recorderControl(uint8_t cmd);
+  
+  /**
+   * @fn SDcard_Init
+   * @brief Initialize SD card
+   * @param mountpoint SD card name
+   */
+  bool SDcard_Init(const char* mountpoint="/sdcard");
 
 ```
 
@@ -155,9 +177,8 @@ FireBeetle-BLE4.1 |             |       √      |            |
 
 ## History
 
-- date 2017-9-29
-- version V1.0
-
+- 2017/9/29 - Version 1.0.0 released.
+- 2022/3/21 - Version 1.0.1 released.
 ## Credits
 
-- author [Zhangjiawei  <jiawei.zhang@dfrobot.com>]
+Written by fengli(li.feng@dfrobot.com), 2022.3.21 (Welcome to our [website](https://www.dfrobot.com/))

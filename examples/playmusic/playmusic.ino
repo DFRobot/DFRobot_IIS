@@ -1,11 +1,18 @@
 /*!
- * @file DFRobot_IIS.h
- * @brief DFRobot's IIS Player Module
- * @n IIS Module for how to begin to play a WAV file,how to excute orders pause,continue,stop and play the next 
- *    Insert sd card with test1.wav and test2.wav.
- *    Call the function by pressing user key to control music player
- *    The Module would operate as follows when pressed: play test1.wav>>pause>>continue>>mute>>Volume:50>>stop>>play test2.wav 
- */
+ * @file playmusic.ino
+ * @brief Example of playing music
+ * @details  IIS Module for how to begin to play a WAV file,how to excute orders pause,continue,stop and play the next 
+ * @n Insert sd card with test1.wav and test2.wav.
+ * @n Call the function by pressing user key to control music player
+ * @n The Module would operate as follows when pressed: play 
+ * @n test1.wav>>pause>>continue>>mute>>Volume:50>>stop>>play test2.wav photo1.bmp,photo2.bmp by pressing user key
+ * @copyright   Copyright (c) 2010 DFRobot Co.Ltd (http://www.dfrobot.com)
+ * @license     The MIT license (MIT)
+ * @author [fengli](li.feng@dfrobot.com)
+ * @version  V1.0.0
+ * @date  2022-03-18
+ * @https://github.com/DFRobot/DFRobot_IIS
+*/
 
 #include <Wire.h>
 #include "DFRobot_IIS.h"

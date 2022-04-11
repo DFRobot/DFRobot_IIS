@@ -1,15 +1,14 @@
 /*!
- * @file DFRobot_IIS.h
- * @brief DFRobot's IIS Module
- * @n IIS Module for playMusic、recordSound and takephoto
- *
- * @copyright    [DFRobot](http://www.dfrobot.com), 2017
- * @copyright    GNU Lesser General Public License
- *
- * @author [Zhangjiawei<jiawei.zhang@dfrobot.com>]
- * @version  V1.0
- * @date  2017-8-1
- */
+ * @file DFRobot_IIS.cpp
+ * @brief Basic struct of DFRobot_IIS class
+ * @details This library provides the codes for driving FireBeetle camera and the camera, microphones, etc. of audio expansion board.
+ * @copyright   Copyright (c) 2010 DFRobot Co.Ltd (http://www.dfrobot.com)
+ * @license     The MIT license (MIT)
+ * @author [fengli](li.feng@dfrobot.com)
+ * @version  V1.0.1
+ * @date  2022-03-21
+ * @https://github.com/DFRobot/DFRobot_IIS
+*/
  
 #include "DFRobot_IIS.h"
 #include "vfs_api.h"
@@ -22,7 +21,7 @@
 #include "sdmmc_cmd.h"
 #include "esp_err.h"
 #include "esp_log.h"
-#include "camera.h"
+
 #include "SD_MMC.h"
 
 char     filename[100];
@@ -54,12 +53,12 @@ bool DFRobot_IIS::init(uint8_t mode)
         rmark=STOP;
         return true;
     }else if(mode==CAMERA){
-        I2C_Master_Init();
-        I2C_WriteNAU8822(0,  0x000);
-        I2C_WriteNAU8822(52, 0x040);
-        I2C_WriteNAU8822(53, 0x040);
-        I2C_WriteNAU8822(54, 0x040);
-        I2C_WriteNAU8822(55, 0x040);
+        i2cMasterInit();
+        i2cWriteNAU8822(0,  0x000);
+        i2cWriteNAU8822(52, 0x040);
+        i2cWriteNAU8822(53, 0x040);
+        i2cWriteNAU8822(54, 0x040);
+        i2cWriteNAU8822(55, 0x040);
         i2c_driver_delete(I2C_MASTER_NUM);
         return true;
     }else{
@@ -81,9 +80,9 @@ void DFRobot_IIS::setSpeakersVolume(uint8_t volume)
     }
     Volume1=(volume*64/100);
     if(mark != PAUSE){
-        I2C_Master_Init();
-        I2C_WriteNAU8822(54, Volume1);
-        I2C_WriteNAU8822(55, Volume1+256);
+        i2cMasterInit();
+        i2cWriteNAU8822(54, Volume1);
+        i2cWriteNAU8822(55, Volume1+256);
         i2c_driver_delete(I2C_MASTER_NUM);
     }
     if(mark == SET){
@@ -94,9 +93,9 @@ void DFRobot_IIS::setSpeakersVolume(uint8_t volume)
 void DFRobot_IIS::muteSpeakers(void)
 {
     mark=SET;
-    I2C_Master_Init();
-    I2C_WriteNAU8822(54, 0x140);
-    I2C_WriteNAU8822(55, 0x140);
+    i2cMasterInit();
+    i2cWriteNAU8822(54, 0x140);
+    i2cWriteNAU8822(55, 0x140);
     i2c_driver_delete(I2C_MASTER_NUM);
     mark=PLAY;
 }
@@ -114,9 +113,9 @@ void DFRobot_IIS::setHeadphonesVolume(uint8_t volume)
     }
     Volume2=(volume*64/100);
     if(mark != PAUSE){
-        I2C_Master_Init();
-        I2C_WriteNAU8822(52, Volume2);
-        I2C_WriteNAU8822(53, Volume2+256);
+        i2cMasterInit();
+        i2cWriteNAU8822(52, Volume2);
+        i2cWriteNAU8822(53, Volume2+256);
         i2c_driver_delete(I2C_MASTER_NUM);
     }
     if(mark == SET){
@@ -126,9 +125,9 @@ void DFRobot_IIS::setHeadphonesVolume(uint8_t volume)
 
 void DFRobot_IIS::muteHeadphones(void)
 {
-    I2C_Master_Init();
-    I2C_WriteNAU8822(52, 0x140);
-    I2C_WriteNAU8822(53, 0x140);
+    i2cMasterInit();
+    i2cWriteNAU8822(52, 0x140);
+    i2cWriteNAU8822(53, 0x140);
     i2c_driver_delete(I2C_MASTER_NUM);
 }
 
@@ -138,8 +137,8 @@ void playWAV(void *arg)
         while(mark==STOP){
             vTaskDelay(100);
         }
-        I2C_Setup_NAU8822_play();
-        HANDLE_WAV wav = (HANDLE_WAV)calloc(1, sizeof(struct WAV));
+        i2cSetupNAU8822Play();
+        handleWav wav = (handleWav)calloc(1, sizeof(sWav_t));
         if(wav == NULL){
             printf("playWAV(): Unable to allocate WAV struct.\n");
             break;
@@ -196,8 +195,8 @@ void playWAV(void *arg)
                 }
             }
         }
-        I2S_MCLK_Init(wav->header.sampleRate);
-        I2S_Master_Init(wav->header.sampleRate ,wav->header.bitsPerSample);
+        i2sMcklkInit(wav->header.sampleRate);
+        i2sMasterInit(wav->header.sampleRate ,wav->header.bitsPerSample);
         i2s_set_sample_rates(I2S_NUM_0, wav->header.sampleRate);
         while(fread(&wav->header.test, 1 , 800 , wav->fp)){
             char *buf=(char *)&wav->header.test;
@@ -208,22 +207,22 @@ void playWAV(void *arg)
                 bytes_left -= bytes_written;
                 buf += bytes_written;
                 if(mark==PAUSE){
-                    I2C_Master_Init();
-                    I2C_WriteNAU8822(52, 0x140);
-                    I2C_WriteNAU8822(53, 0x140);
-                    I2C_WriteNAU8822(54, 0x140);
-                    I2C_WriteNAU8822(55, 0x140);
+                    i2cMasterInit();
+                    i2cWriteNAU8822(52, 0x140);
+                    i2cWriteNAU8822(53, 0x140);
+                    i2cWriteNAU8822(54, 0x140);
+                    i2cWriteNAU8822(55, 0x140);
                     i2c_driver_delete(I2C_MASTER_NUM);
                     vTaskDelay(500);
                     while(mark==PAUSE){
                         vTaskDelay(100);
                     }
                     vTaskDelay(100);
-                    I2C_Master_Init();
-                    I2C_WriteNAU8822(52, Volume2);
-                    I2C_WriteNAU8822(53, Volume2+256);
-                    I2C_WriteNAU8822(54, Volume1);
-                    I2C_WriteNAU8822(55, Volume1+256);
+                    i2cMasterInit();
+                    i2cWriteNAU8822(52, Volume2);
+                    i2cWriteNAU8822(53, Volume2+256);
+                    i2cWriteNAU8822(54, Volume1);
+                    i2cWriteNAU8822(55, Volume1+256);
                     i2c_driver_delete(I2C_MASTER_NUM);
                 }
                 while(mark==SET){
@@ -231,11 +230,11 @@ void playWAV(void *arg)
                 }
             }
             if(mark==STOP){
-                I2C_Master_Init();
-                I2C_WriteNAU8822(52, 0x140);
-                I2C_WriteNAU8822(53, 0x140);
-                I2C_WriteNAU8822(54, 0x140);
-                I2C_WriteNAU8822(55, 0x140);
+                i2cMasterInit();
+                i2cWriteNAU8822(52, 0x140);
+                i2cWriteNAU8822(53, 0x140);
+                i2cWriteNAU8822(54, 0x140);
+                i2cWriteNAU8822(55, 0x140);
                 i2c_driver_delete(I2C_MASTER_NUM);
                 break;
             }
@@ -273,11 +272,11 @@ void DFRobot_IIS::playMusic(const char *Filename)
 void recordSound(void *arg)
 {
     while(1){
-        HANDLE_WAV wav = (HANDLE_WAV)calloc(1, sizeof(struct WAV));
+        handleWav wav = (handleWav)calloc(1, sizeof( sWav_t));
         while(rmark==STOP){
             vTaskDelay(100);
         }
-        I2C_Setup_NAU8822_record();
+        i2cSetupNAU8822Record();
         unsigned int size = 0;
         if(wav == NULL){
             printf("recordSound(): Unable to allocate WAV struct.\n");
@@ -312,8 +311,8 @@ void recordSound(void *arg)
         fwrite(&wav->header.dataType1 ,1,8, wav->fp);
         int bytes_written = 0;
         char *buf=(char *)&wav->header.test;
-        I2S_MCLK_Init(32000);
-        I2S_Slave_Init(32000,I2S_BITS_PER_SAMPLE_16BIT);
+        i2sMcklkInit(32000);
+        i2sSlaveInit(32000,I2S_BITS_PER_SAMPLE_16BIT);
         vTaskDelay(1000);
         while(rmark!=STOP){
            // bytes_written = i2s_read_bytes(I2S_NUM_0 ,buf, 800 , 100);
@@ -389,15 +388,15 @@ void DFRobot_IIS::sendPhoto(void)
 void DFRobot_IIS::snapshot(const char *Filename)
 {
     char SDfilename[30]="/sdcard";
-	//Serial.println("1");
+    //Serial.println("1");
     strcat(SDfilename,Filename);
-	//Serial.println("2");
+    //Serial.println("2");
     strcpy(pictureFilename,SDfilename);
     //Serial.println("3");
-	camera_run(pictureFilename);
+    camera_run(pictureFilename);
 }
 
-void I2C_Master_Init()
+void i2cMasterInit()
 {
     i2c_port_t i2c_master_port = I2C_MASTER_NUM;
     i2c_config_t conf;
@@ -415,7 +414,7 @@ void I2C_Master_Init()
     //Serial.println("down");
 }
 
-void I2C_WriteNAU8822(int8_t addr, int16_t data)
+void i2cWriteNAU8822(int8_t addr, int16_t data)
 {
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
     i2c_master_start(cmd);
@@ -427,86 +426,86 @@ void I2C_WriteNAU8822(int8_t addr, int16_t data)
     i2c_cmd_link_delete(cmd);
 }
 
-void I2C_Setup_NAU8822_play()
+void i2cSetupNAU8822Play()
 {
-    I2C_Master_Init();
-    I2C_WriteNAU8822(0,  0x000);
+    i2cMasterInit();
+    i2cWriteNAU8822(0,  0x000);
     vTaskDelay(10);
-    I2C_WriteNAU8822(1,  0x1FF);
-    I2C_WriteNAU8822(2,  0x1BF);
-    I2C_WriteNAU8822(3,  0x1FF);
-    I2C_WriteNAU8822(4,  0x010);
-    I2C_WriteNAU8822(5,  0x000);
-    I2C_WriteNAU8822(6,  0x00C);
-    I2C_WriteNAU8822(7,  0x000);
-    I2C_WriteNAU8822(13, 0x09f);
-    I2C_WriteNAU8822(10, 0x008);
-    I2C_WriteNAU8822(14, 0x108);
-    I2C_WriteNAU8822(15, 0x0FF);
-    I2C_WriteNAU8822(16, 0x1FF);
-    I2C_WriteNAU8822(45, 0x0bf);
-    I2C_WriteNAU8822(46, 0x1bf);
-    I2C_WriteNAU8822(47, 0x175);
-    I2C_WriteNAU8822(49, 0x042);
-    I2C_WriteNAU8822(50, 0x1DD);
-    I2C_WriteNAU8822(51, 0x001);
+    i2cWriteNAU8822(1,  0x1FF);
+    i2cWriteNAU8822(2,  0x1BF);
+    i2cWriteNAU8822(3,  0x1FF);
+    i2cWriteNAU8822(4,  0x010);
+    i2cWriteNAU8822(5,  0x000);
+    i2cWriteNAU8822(6,  0x00C);
+    i2cWriteNAU8822(7,  0x000);
+    i2cWriteNAU8822(13, 0x09f);
+    i2cWriteNAU8822(10, 0x008);
+    i2cWriteNAU8822(14, 0x108);
+    i2cWriteNAU8822(15, 0x0FF);
+    i2cWriteNAU8822(16, 0x1FF);
+    i2cWriteNAU8822(45, 0x0bf);
+    i2cWriteNAU8822(46, 0x1bf);
+    i2cWriteNAU8822(47, 0x175);
+    i2cWriteNAU8822(49, 0x042);
+    i2cWriteNAU8822(50, 0x1DD);
+    i2cWriteNAU8822(51, 0x001);
     if(Volume2 != 0){
-        I2C_WriteNAU8822(52, Volume2);
-        I2C_WriteNAU8822(53, Volume2+256);
+        i2cWriteNAU8822(52, Volume2);
+        i2cWriteNAU8822(53, Volume2+256);
     }else{
-        I2C_WriteNAU8822(52, 0x040);
-        I2C_WriteNAU8822(53, 0x040);
+        i2cWriteNAU8822(52, 0x040);
+        i2cWriteNAU8822(53, 0x040);
     }
     if(Volume1 != 0){
-        I2C_WriteNAU8822(54, Volume1);
-        I2C_WriteNAU8822(55, Volume1+256);
+        i2cWriteNAU8822(54, Volume1);
+        i2cWriteNAU8822(55, Volume1+256);
     }else{
-        I2C_WriteNAU8822(54, 0x040);
-        I2C_WriteNAU8822(55, 0x040);
+        i2cWriteNAU8822(54, 0x040);
+        i2cWriteNAU8822(55, 0x040);
     }
     i2c_driver_delete(I2C_MASTER_NUM);
 }
 
-void I2C_Setup_NAU8822_record()
+void i2cSetupNAU8822Record()
 {
-    I2C_Master_Init();
-    I2C_WriteNAU8822(0,  0x000);
+    i2cMasterInit();
+    i2cWriteNAU8822(0,  0x000);
     vTaskDelay(10);
-    I2C_WriteNAU8822(1,  0x1FF);
-    I2C_WriteNAU8822(2,  0x1BF);
-    I2C_WriteNAU8822(3,  0x1FF);
-    I2C_WriteNAU8822(4,  0x010);
-    I2C_WriteNAU8822(5,  0x000);
-    I2C_WriteNAU8822(6,  0x00D);
-    I2C_WriteNAU8822(7,  0x007);
-    I2C_WriteNAU8822(9 , 0x150);
-    I2C_WriteNAU8822(10, 0x008);
-    I2C_WriteNAU8822(14, 0x108);
-    I2C_WriteNAU8822(15, 0x0FF);
-    I2C_WriteNAU8822(16, 0x1FF);
-    I2C_WriteNAU8822(44, 0x033);
-    I2C_WriteNAU8822(45, 0x0bf);
-    I2C_WriteNAU8822(46, 0x1bf);
-    I2C_WriteNAU8822(47, 0x075);
-    I2C_WriteNAU8822(48, 0x075);
-    I2C_WriteNAU8822(50, 0x001);
-    I2C_WriteNAU8822(51, 0x001);
-    I2C_WriteNAU8822(52, 0x040);
-    I2C_WriteNAU8822(53, 0x040);
-    I2C_WriteNAU8822(54, 0x040);
-    I2C_WriteNAU8822(55, 0x040);
-    I2C_WriteNAU8822(74, 0x100);
+    i2cWriteNAU8822(1,  0x1FF);
+    i2cWriteNAU8822(2,  0x1BF);
+    i2cWriteNAU8822(3,  0x1FF);
+    i2cWriteNAU8822(4,  0x010);
+    i2cWriteNAU8822(5,  0x000);
+    i2cWriteNAU8822(6,  0x00D);
+    i2cWriteNAU8822(7,  0x007);
+    i2cWriteNAU8822(9 , 0x150);
+    i2cWriteNAU8822(10, 0x008);
+    i2cWriteNAU8822(14, 0x108);
+    i2cWriteNAU8822(15, 0x0FF);
+    i2cWriteNAU8822(16, 0x1FF);
+    i2cWriteNAU8822(44, 0x033);
+    i2cWriteNAU8822(45, 0x0bf);
+    i2cWriteNAU8822(46, 0x1bf);
+    i2cWriteNAU8822(47, 0x075);
+    i2cWriteNAU8822(48, 0x075);
+    i2cWriteNAU8822(50, 0x001);
+    i2cWriteNAU8822(51, 0x001);
+    i2cWriteNAU8822(52, 0x040);
+    i2cWriteNAU8822(53, 0x040);
+    i2cWriteNAU8822(54, 0x040);
+    i2cWriteNAU8822(55, 0x040);
+    i2cWriteNAU8822(74, 0x100);
     i2c_driver_delete(I2C_MASTER_NUM);
 }
 
-void I2S_MCLK_Init(unsigned int SAMPLE_RATE)
+void i2sMcklkInit(unsigned int sampleRate)
 {
     periph_module_enable(PERIPH_LEDC_MODULE);
     ledc_timer_bit_t bit_num = (ledc_timer_bit_t) 2;
     int duty                 = pow(2, (int) bit_num) / 2;
     ledc_timer_config_t timer_conf;
     timer_conf.bit_num       = bit_num;
-    timer_conf.freq_hz       = SAMPLE_RATE*256; 
+    timer_conf.freq_hz       = sampleRate*256; 
     timer_conf.speed_mode    = LEDC_HIGH_SPEED_MODE;
     timer_conf.timer_num     = LEDC_TIMER_0;
     ledc_timer_config(&timer_conf);
@@ -522,12 +521,12 @@ void I2S_MCLK_Init(unsigned int SAMPLE_RATE)
     ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_1); 
 }
 
-void I2S_Master_Init(uint32_t SAMPLE_RATE,i2s_bits_per_sample_t BITS_PER_SAMPLE)
+void i2sMasterInit(uint32_t sampleRate,i2s_bits_per_sample_t bitsPerSample)
 {
     i2s_config_t i2s_config  = {
         .mode                = i2s_mode_t(I2S_MODE_MASTER | I2S_MODE_TX) ,
-        .sample_rate         = SAMPLE_RATE,
-        .bits_per_sample     = BITS_PER_SAMPLE,
+        .sample_rate         = sampleRate,
+        .bits_per_sample     = bitsPerSample,
         .channel_format      = I2S_CHANNEL_FMT_RIGHT_LEFT,
         .communication_format= I2S_COMM_FORMAT_I2S,
         .intr_alloc_flags    = ESP_INTR_FLAG_LEVEL1
@@ -544,12 +543,12 @@ void I2S_Master_Init(uint32_t SAMPLE_RATE,i2s_bits_per_sample_t BITS_PER_SAMPLE)
     i2s_set_pin(I2S_NUM_0, &pin_config);
 }  
 
-void I2S_Slave_Init(uint32_t SAMPLE_RATE,i2s_bits_per_sample_t BITS_PER_SAMPLE)
+void i2sSlaveInit(uint32_t SAMPLE_RATE,i2s_bits_per_sample_t bitsPerSample)
 {
     i2s_config_t i2s_config  = {
         .mode                = i2s_mode_t(I2S_MODE_SLAVE | I2S_MODE_RX),
         .sample_rate         = SAMPLE_RATE, 
-        .bits_per_sample     = BITS_PER_SAMPLE,
+        .bits_per_sample     = bitsPerSample,
         .channel_format      = I2S_CHANNEL_FMT_RIGHT_LEFT,
         .communication_format= I2S_COMM_FORMAT_I2S,
         .intr_alloc_flags    = ESP_INTR_FLAG_LEVEL1
@@ -575,10 +574,10 @@ bool DFRobot_IIS::SDcard_Init(const char* mountpoint)
     return true;
 }
 
-unsigned int   LittleEndian32(unsigned int v){
+unsigned int   littleEndian32(unsigned int v){
     return ((v & 0x000000FF) << 24 | (v & 0x0000FF00) <<  8 | (v & 0x00FF0000) >>  8 | (v & 0xFF000000) >> 24);
 }
 
-unsigned short LittleEndian16(short v){
+unsigned short littleEndian16(short v){
     return (short)(((v << 8) & 0xFF00) | ((v >> 8) & 0x00FF));
 }

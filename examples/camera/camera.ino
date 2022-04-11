@@ -1,11 +1,17 @@
 /*!
- * @file DFRobot_IIS.h
- * @brief DFRobot's IIS Camera Module
- * @n IIS Module for take photo and save BMP file in SD card
- *    Insert sd card
- *    Call the function by pressing user key to take photo
- *    This Module will take photo and save as photo1.bmp,photo2.bmp by pressing user key
- */
+ * @file camera.ino
+ * @brief Example of taking photo using camera
+ * @details IIS Module for take photo and save BMP file in SD card Insert sd card
+ * @n  Call the function by pressing user key to take photo
+ * @n  This Module will take photo and save as photo1.bmp,photo2.bmp by pressing user key
+ * @copyright   Copyright (c) 2010 DFRobot Co.Ltd (http://www.dfrobot.com)
+ * @license     The MIT license (MIT)
+ * @author [fengli](li.feng@dfrobot.com)
+ * @version  V1.0.0
+ * @date  2022-03-18
+ * @https://github.com/DFRobot/DFRobot_IIS
+*/
+
 
 #include <Wire.h>
 #include "DFRobot_IIS.h"
@@ -13,8 +19,8 @@
 DFRobot_IIS iis;
 const int buttonPin = 16;
 int i=0; 
-const char* SSID    ="yourSSID";
-const char* PASSWORD="SSID password";
+const char* SSID    ="yourSSID";  //wifi name
+const char* PASSWORD="SSID password"; //wifi password
 void setup(){
     Serial.begin(115200);
     pinMode(buttonPin, INPUT);

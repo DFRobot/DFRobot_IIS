@@ -1,12 +1,18 @@
 /*!
- * @file DFRobot_IIS.h
- * @brief DFRobot's IIS Record Module
- * @n IIS Module for Record sound and Save WAV file in SD card 
- *    Insert sd card 
- *    Call the function by pressing user key to control recorder
- *    This Module will record sound and save it as record1.wav record2.wav by pressing user key
- */
- 
+ * @file record.ino
+ * @brief Example of recording sound
+ * @details IIS Module for Record sound and Save WAV file in SD card 
+ * @n   Insert sd card 
+ * @n  Call the function by pressing user key to control recorder
+ * @n  This Module will record sound and save it as record1.wav record2.wav by pressing user key
+ * @copyright   Copyright (c) 2010 DFRobot Co.Ltd (http://www.dfrobot.com)
+ * @license     The MIT license (MIT)
+ * @author [fengli](li.feng@dfrobot.com)
+ * @version  V1.0.0
+ * @date  2022-03-18
+ * @https://github.com/DFRobot/DFRobot_IIS
+*/
+
 #include <Wire.h>
 #include <DFRobot_IIS.h>
 
